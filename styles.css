@@ -1,0 +1,115 @@
+
+/*CSS do index.html*/
+body {
+  margin: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Cabeçalho */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 40px;
+  background-color: #002f4b;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  height: 50px;
+  margin-right: 15px;
+}
+
+.logo span {
+  font-size: 26px;
+  font-weight: bold;
+}
+
+nav {
+  display: flex;
+  gap: 25px;
+}
+
+nav a {
+  text-decoration: none;
+  color: white;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+.auth-buttons button {
+  padding: 10px 25px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.auth-buttons .register {
+  background-color: #004d66;
+  color: white;
+  font-weight: bold;
+}
+
+.auth-buttons .register:hover {
+  background-color: #00394d;
+}
+
+.auth-buttons .login {
+  background-color: transparent;
+  border: 2px solid white;
+  color: white;
+  font-weight: bold;
+}
+
+.auth-buttons .login:hover {
+  background-color: white;
+  color: #002f4b;
+}
+
+/* Conteúdo principal */
+main {
+  flex: 1;
+  text-align: center;
+  padding: 100px 20px;
+  background: linear-gradient(180deg, #f4f4f4, #d9e3f0);
+}
+
+main h1 {
+  font-size: 42px;
+  color: #002f4b;
+  margin-bottom: 20px;
+}
+
+main p {
+  font-size: 20px;
+  color: #333;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Rodapé */
+footer {
+  text-align: center;
+  padding: 20px 0;
+  background-color: #002f4b;
+  color: white;
+  font-size: 14px;
+  margin-top: auto;
+}
