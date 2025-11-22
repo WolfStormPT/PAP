@@ -322,19 +322,29 @@ session_start();
 
     <div class="auth-buttons">
       
-      <?php if (isset($_SESSION['usuario']) && $_SESSION['usuario']['user_type'] === 'admin'): ?>
-        <button onclick="window.location.href='adicionar_empresa.php'" 
-                class="admin-btn">
-          + Adicionar Empresa
-        </button>
-      <?php endif; ?>
-      <?php if (isset($_SESSION['usuario'])): ?>
+      <?php 
+      if (
+        isset($_SESSION['usuario']) &&
+        isset($_SESSION['usuario']['user_type']) &&
+        $_SESSION['usuario']['user_type'] === 'admin'
+      ) {
+      ?>
+          <button onclick="window.location.href='adicionar_empresa.php'" class="admin-btn">
+              + Adicionar Empresa
+          </button>
+      <?php 
+      }
+      ?>
+      
+      <?php 
+      if (isset($_SESSION['usuario'])) { ?>
         <span>Olá, <?php echo htmlspecialchars($_SESSION['usuario']['nome']); ?>!</span>
         <button onclick="window.location.href='logout.php'">Logout</button>
-      <?php else: ?>
+      <?php } else { ?>
         <button onclick="window.location.href='registar.php'">Registrar</button>
         <button onclick="window.location.href='login.php'">Login</button>
-      <?php endif; ?>
+      <?php } ?>
+
     </div>
   </header>
 
@@ -377,6 +387,11 @@ session_start();
         <p>Robôs, escovas, filtros e tudo o que você precisa para manter sua piscina impecável.</p>
         <a href="produtos.php" class="btn">Ver Acessórios</a>
       </div>
+      <div class="column">
+        <img src="assets/entrega.png" alt="Entrega Rápida" class="icon-img">
+        <h3>Entrega Rápida</h3>
+        <p>Receba seus pedidos com agilidade e segurança em sua casa.</p>
+      </div>
     </div>
   </section>
 
@@ -392,6 +407,11 @@ session_start();
         <img src="assets/qualidade.png" alt="Qualidade" class="icon-img">
         <h3>Produtos de Qualidade</h3>
         <p>Trabalhamos com as melhores marcas e fornecedores do mercado.</p>
+      </div>
+      <div class="column">
+        <img src="assets/entrega.png" alt="Entrega Rápida" class="icon-img">
+        <h3>Entrega Rápida</h3>
+        <p>Receba seus pedidos com agilidade e segurança em sua casa.</p>
       </div>
       <div class="column">
         <img src="assets/entrega.png" alt="Entrega Rápida" class="icon-img">

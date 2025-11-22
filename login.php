@@ -2,24 +2,36 @@
 session_start(); // Inicia a sessão para utilizar variáveis de sessão
 require_once "conexao.php"; // Importa o arquivo de conexão com o banco de dados
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") { // Verifica se o formulário foi enviado via método POST
-    $email = ($_POST["email"]); // Captura o e-mail do formulário
-    $senha = ($_POST["senha"]); // Captura a senha do formulário
+$erro = ""; // Inicializa a variável de erro
 
-    // Prepara uma consulta para verificar se o usuário existe
-    $sql = "SELECT id_cliente, nome, senha FROM clientes WHERE email = ?";
+if ($_SERVER["REQUEST_METHOD"] == "POST") { // Verifica se o formulário foi enviado via método POST
+    $email = trim($_POST["email"]); // Captura o e-mail do formulário e remove espaços em branco
+    $senha = $_POST["senha"]; // Captura a senha do formulário
+
+    // CORREÇÃO AQUI: Adicionar 'user_type' na query
+    $sql = "SELECT id_cliente, nome, senha, user_type FROM clientes WHERE email = ?";
     $stmt = mysqli_prepare($ligaDB, $sql); // Prepara a query para evitar SQL Injection
     mysqli_stmt_bind_param($stmt, "s", $email); // Substitui o ? pelo valor do e-mail
     mysqli_stmt_execute($stmt); // Executa a query
     mysqli_stmt_store_result($stmt); // Armazena os resultados
 
     if (mysqli_stmt_num_rows($stmt) > 0) { // Verifica se encontrou algum usuário
-        mysqli_stmt_bind_result($stmt, $id_cliente, $nome, $senha_hash); // Associa os dados retornados às variáveis
+        
+        // CORREÇÃO AQUI: Adicionar a nova variável $user_type
+        mysqli_stmt_bind_result($stmt, $id_cliente, $nome, $senha_hash, $user_type); // Associa os dados retornados às variáveis
         mysqli_stmt_fetch($stmt); // Busca os dados
 
         // Verifica se a senha digitada bate com a hash do banco
         if (password_verify($senha, $senha_hash)) {
-            $_SESSION["usuario"] = ["id_cliente" => $id_cliente, "nome" => $nome, "email" => $email]; // Armazena dados na sessão
+            
+            // CORREÇÃO AQUI: Armazena o 'user_type' na sessão
+            $_SESSION["usuario"] = [
+                "id_cliente" => $id_cliente, 
+                "nome" => $nome, 
+                "email" => $email,
+                "user_type" => $user_type // AGORA ESTÁ COMPLETO
+            ]; 
+            
             header("Location: index.php"); // Redireciona para a página principal
             exit(); 
         } else {
@@ -28,6 +40,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") { // Verifica se o formulário foi env
     } else {
         $erro = "E-mail ou senha incorretos!"; // Mensagem de erro se o e-mail não for encontrado
     }
+    mysqli_stmt_close($stmt);
+}
+
+// Fechar conexão aqui, se o HTML for exibido
+if (isset($ligaDB)) {
+    mysqli_close($ligaDB);
 }
 ?>
 
