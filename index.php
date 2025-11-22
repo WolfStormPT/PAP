@@ -10,6 +10,7 @@ session_start();
   <title>OceanBlue Pool</title>
 
   <style>
+    /* CSS principal (mantido do original) */
     * {
       margin: 0;
       padding: 0;
@@ -88,6 +89,16 @@ session_start();
 
     .auth-buttons button:hover {
       background: #e0e0e0;
+    }
+    
+    /* Novo estilo para o botão Admin */
+    .admin-btn {
+        background: #ffcc00 !important; /* Cor de destaque */
+        color: #005792 !important;
+        transition: background 0.3s;
+    }
+    .admin-btn:hover {
+        background: #e0b300 !important;
     }
 
     .hero {
@@ -310,6 +321,13 @@ session_start();
     </nav>
 
     <div class="auth-buttons">
+      
+      <?php if (isset($_SESSION['usuario']) && $_SESSION['usuario']['user_type'] === 'admin'): ?>
+        <button onclick="window.location.href='adicionar_empresa.php'" 
+                class="admin-btn">
+          + Adicionar Empresa
+        </button>
+      <?php endif; ?>
       <?php if (isset($_SESSION['usuario'])): ?>
         <span>Olá, <?php echo htmlspecialchars($_SESSION['usuario']['nome']); ?>!</span>
         <button onclick="window.location.href='logout.php'">Logout</button>
