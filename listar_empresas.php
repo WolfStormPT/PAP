@@ -138,11 +138,10 @@ mysqli_close($ligaDB);
         </div>
 
         <nav>
-            <a href="produtos.php">Produtos</a>
+            <a href="listar_empresas.php">Empresas</a> 
             <a href="piscinas.php">Piscinas</a>
             <a href="orcamento.php">Orçamento</a>
             <a href="servicos.php">Serviços</a>
-            <a href="listar_empresas.php">Empresas</a> 
         </nav>
 
         <div class="auth-buttons">

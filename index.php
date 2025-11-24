@@ -314,7 +314,7 @@ session_start();
     </div>
 
     <nav>
-      <a href="produtos.php">Produtos</a>
+      <a href="empresa.php">Empresas</a>
       <a href="piscinas.php">Piscinas</a>
       <a href="orcamento.php">Orçamento</a>
       <a href="servicos.php">Serviços</a>
@@ -424,7 +424,7 @@ session_start();
   <footer>
     <div class="footer-links">
       <a href="index.php">Início</a>
-      <a href="produtos.php">Produtos</a>
+      <a href="listar_empresas.php">Empresas</a> 
       <a href="sobre.php">Sobre</a>
       <a href="contato.php">Contato</a>
     </div>
