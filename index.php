@@ -366,60 +366,6 @@ session_start();
     <p>Estamos apenas a começar, mas já garantimos qualidade, compromisso e um serviço ao cliente de excelência. Na OceanBlue Pool, você encontra mais do que produtos – encontra confiança.</p>
   </section>
 
-  <section class="section">
-    <h2>Os Nossos Produtos</h2>
-    <div class="columns">
-      <div class="column">
-        <img src="assets/cloro.png" alt="Produtos de Piscinas" class="icon-img">
-        <h3>Produtos de Piscinas</h3>
-        <p>Os melhores produtos para manter sua piscina sempre limpa e cristalina.</p>
-        <a href="produtos.php" class="btn">Ver Produtos</a>
-      </div>
-      <div class="column">
-        <img src="assets/piscina.png" alt="Piscinas" class="icon-img">
-        <h3>Piscinas</h3>
-        <p>Modelos modernos e duradouros para transformar seu espaço de lazer.</p>
-        <a href="piscinas.php" class="btn">Ver Piscinas</a>
-      </div>
-      <div class="column">
-        <img src="assets/robo.png" alt="Acessórios" class="icon-img">
-        <h3>Acessórios</h3>
-        <p>Robôs, escovas, filtros e tudo o que você precisa para manter sua piscina impecável.</p>
-        <a href="produtos.php" class="btn">Ver Acessórios</a>
-      </div>
-      <div class="column">
-        <img src="assets/entrega.png" alt="Entrega Rápida" class="icon-img">
-        <h3>Entrega Rápida</h3>
-        <p>Receba seus pedidos com agilidade e segurança em sua casa.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <h2>Por que escolher a OceanBlue Pool?</h2>
-    <div class="columns">
-      <div class="column">
-        <img src="assets/suporte.png" alt="Atendimento" class="icon-img">
-        <h3>Atendimento Especializado</h3>
-        <p>Estamos aqui para ajudar em cada etapa do seu projeto aquático.</p>
-      </div>
-      <div class="column">
-        <img src="assets/qualidade.png" alt="Qualidade" class="icon-img">
-        <h3>Produtos de Qualidade</h3>
-        <p>Trabalhamos com as melhores marcas e fornecedores do mercado.</p>
-      </div>
-      <div class="column">
-        <img src="assets/entrega.png" alt="Entrega Rápida" class="icon-img">
-        <h3>Entrega Rápida</h3>
-        <p>Receba seus pedidos com agilidade e segurança em sua casa.</p>
-      </div>
-      <div class="column">
-        <img src="assets/entrega.png" alt="Entrega Rápida" class="icon-img">
-        <h3>Entrega Rápida</h3>
-        <p>Receba seus pedidos com agilidade e segurança em sua casa.</p>
-      </div>
-    </div>
-  </section>
 
   <footer>
     <div class="footer-links">

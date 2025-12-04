@@ -287,7 +287,7 @@ mysqli_close($ligaDB);
                     <p><strong>Localização:</strong> <?php echo htmlspecialchars($empresa['localizacao']); ?></p>
                     <p><strong>Telefone:</strong> <?php echo htmlspecialchars($empresa['telefone']); ?></p>
                     <p><strong>Email:</strong> <a href="mailto:<?php echo htmlspecialchars($empresa['email']); ?>"><?php echo htmlspecialchars($empresa['email']); ?></a></p>
-                    <p><strong>Website:</strong> <a href="<?php echo htmlspecialchars($empresa['website']); ?>" target="_blank"><?php echo htmlspecialchars($empresa['website']); ?></a></p>
+                    <p><strong>Website:</strong> <a href="<?php echo htmlspecialchars($empresa['site']); ?>" target="_blank"><?php echo htmlspecialchars($empresa['site']); ?></a></p>
                 </div>
                 
                 <div>

@@ -1,5 +1,5 @@
 <?php
-// CONEXÃO COM BASE DE DADOS ola
+// CONEXÃO COM BASE DE DADOS
 $host = 'localhost';
 $user = 'root';
 $pass = '';
