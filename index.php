@@ -315,7 +315,7 @@ session_start();
 
     <nav>
       <a href="empresa.php">Empresas</a>
-      <a href="piscinas.php">Piscinas</a>
+      <a href="recomendacao.php">Conselheiro</a>
       <a href="orcamento.php">Orçamento</a>
       <a href="servicos.php">Serviços</a>
     </nav>

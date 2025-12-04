@@ -20,6 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
     
     $servico_id_escolhido = isset($_POST['servico_id']) ? intval($_POST['servico_id']) : 0;
     $foco_escolhido = $_POST['foco'] ?? 'avaliacao';
+    // O valor 'nao_quero' passará a ser tratado como vazio/ignorado
     $tipo_piscina_escolhido = trim($_POST['tipo_piscina'] ?? '');
     
     if ($servico_id_escolhido === 0) {
@@ -47,8 +48,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
         $params = [$servico_id_escolhido];
         $types = "i";
 
-        // FILTRO SECUNDÁRIO: Tipo de Piscina (Busca na descrição da empresa)
-        if (!empty($tipo_piscina_escolhido)) {
+        // MUDANÇA NA LÓGICA PHP (LINHAS 46-51): IGNORAR O FILTRO SE FOR "nao_quero"
+        if (!empty($tipo_piscina_escolhido) && $tipo_piscina_escolhido !== 'nao_quero') {
             $query .= " AND e.descricao LIKE ?";
             $params[] = "%" . $tipo_piscina_escolhido . "%";
             $types .= "s";
@@ -73,7 +74,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
         // Bind parameters dinamicamente (usando call_user_func_array para o bind)
         if (!empty($types)) {
             $bind_params = array_merge([$types], $params);
-            call_user_func_array('mysqli_stmt_bind_param', array_merge([$stmt], $bind_params));
+            // Corrigindo o problema de referência do bind_param (como visto na última interação)
+            $refs = [];
+            foreach ($bind_params as $key => $value) {
+                $refs[$key] = &$bind_params[$key];
+            }
+            call_user_func_array('mysqli_stmt_bind_param', array_merge([$stmt], $refs));
         }
 
         mysqli_stmt_execute($stmt);
@@ -171,10 +177,9 @@ mysqli_close($ligaDB);
 
         <nav>
             <a href="listar_empresas.php">Empresas</a>
-            <a href="piscinas.php">Piscinas</a>
+            <a href="recomendacao.php">Conselheiro</a>
             <a href="orcamento.php">Orçamento</a>
             <a href="servicos.php">Serviços</a>
-            <a href="recomendacao.php">Conselheiro</a>
         </nav>
 
         <div class="auth-buttons">
@@ -218,6 +223,7 @@ mysqli_close($ligaDB);
                     <label for="tipo_piscina">2. Se for instalação/manutenção, qual o tipo de piscina?</label>
                     <select id="tipo_piscina" name="tipo_piscina">
                         <option value="">-- Qualquer Tipo --</option>
+                        <option value="nao_quero" <?php echo ($tipo_piscina_escolhido === 'nao_quero') ? 'selected' : ''; ?>>Não quero / Não se aplica</option>
                         <option value="Betão" <?php echo ($tipo_piscina_escolhido === 'Betão') ? 'selected' : ''; ?>>Betão / Alvenaria</option>
                         <option value="Fibra" <?php echo ($tipo_piscina_escolhido === 'Fibra') ? 'selected' : ''; ?>>Fibra</option>
                         <option value="Vinil" <?php echo ($tipo_piscina_escolhido === 'Vinil') ? 'selected' : ''; ?>>Vinil</option>
