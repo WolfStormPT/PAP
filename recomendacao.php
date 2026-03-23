@@ -142,12 +142,41 @@ mysqli_close($ligaDB);
         /* Área de Resultados */
         .results-section { margin-top: 40px; }
         .results-section h2 { color: #388e3c; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-        .empresa-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 5px solid var(--cor-secundaria); }
-        .empresa-card h3 { color: var(--cor-principal); margin-bottom: 5px; }
-        .rating { color: var(--cor-secundaria); font-weight: bold; margin-bottom: 5px; }
-        .servicos-tag { display: inline-block; background: #e0f3ff; color: var(--cor-principal); padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; margin-top: 5px; }
-        .recommendation-reason { font-style: italic; margin-top: 10px; color: #555; }
-        .top-label { background: #ffcc00; color: #005792; padding: 3px 8px; border-radius: 4px; font-weight: bold; margin-bottom: 5px; display: inline-block; }
+        
+        /* AJUSTE PARA CARD CLICÁVEL */
+        .empresa-card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+            margin-bottom: 15px; 
+            border-left: 5px solid var(--cor-secundaria); 
+            position: relative; /* Adicionado */
+            transition: transform 0.2s; /* Adicionado */
+            cursor: pointer; /* Adicionado */
+        }
+        .empresa-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); } /* Adicionado */
+        
+        .card-link { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; } /* Adicionado */
+
+        .empresa-card h3 { color: var(--cor-principal); margin-bottom: 5px; position: relative; z-index: 2; }
+        .rating { color: var(--cor-secundaria); font-weight: bold; margin-bottom: 5px; position: relative; z-index: 2; }
+        .servicos-tag { display: inline-block; background: #e0f3ff; color: var(--cor-principal); padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; margin-top: 5px; position: relative; z-index: 11; }
+        .recommendation-reason { font-style: italic; margin-top: 10px; color: #555; position: relative; z-index: 2; }
+        .top-label { background: #ffcc00; color: #005792; padding: 3px 8px; border-radius: 4px; font-weight: bold; margin-bottom: 5px; display: inline-block; position: relative; z-index: 2; }
+
+        /* NOVO: Badge de Match */
+        .match-badge {
+            float: right;
+            background: #388e3c;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+        }
 
         /* ESTILOS DO FOOTER (COPIADOS DO INDEX.PHP) */
         footer {
@@ -257,9 +286,18 @@ mysqli_close($ligaDB);
             <div class="results-section">
                 <h2>⭐ Top <?php echo count($recomendacoes); ?> Empresas Recomendadas</h2>
 
-                <?php foreach ($recomendacoes as $key => $empresa): ?>
+                <?php foreach ($recomendacoes as $key => $empresa): 
+                    // Cálculo simples do Match baseado na nota
+                    $match = ($empresa['avaliacao_media'] / 5) * 100;
+                ?>
                     <div class="empresa-card">
                         
+                        <a href="empresa.php?id=<?php echo $empresa['id_empresa']; ?>" class="card-link"></a>
+
+                        <div class="match-badge">
+                            <?php echo round($match); ?>% Match
+                        </div>
+
                         <div class="top-label">
                              Recomendação #<?php echo $key + 1; ?>
                         </div>
@@ -272,7 +310,7 @@ mysqli_close($ligaDB);
                             Nota Média: <?php echo number_format($empresa['avaliacao_media'], 2); ?>
                         </div>
                         
-                        <p><strong>Localização:</strong> <?php echo htmlspecialchars($empresa['localizacao']); ?></p>
+                        <p style="position:relative; z-index:2;"><strong>Localização:</strong> <?php echo htmlspecialchars($empresa['localizacao']); ?></p>
 
                         <div>
                             <?php 
@@ -295,9 +333,9 @@ mysqli_close($ligaDB);
                             ?>
                         </div>
                         
-                        <a href="empresa.php?id=<?php echo $empresa['id_empresa']; ?>" class="btn" style="width: auto; margin-top: 10px;">
+                        <div class="btn" style="width: auto; margin-top: 15px; display: inline-block; position: relative; z-index: 5;">
                             Ver Detalhes e Contactar
-                        </a>
+                        </div>
 
                     </div>
                 <?php endforeach; ?>

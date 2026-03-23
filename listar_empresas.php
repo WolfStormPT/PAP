@@ -31,20 +31,16 @@ $query = "
 
 // Adicionar a lógica de filtro
 if ($filtro_servico_id > 0) {
-    // A query deve filtrar apenas empresas que oferecem o ID de serviço selecionado
     $query .= " WHERE e.id_empresa IN (
         SELECT id_empresa FROM empresa_servicos WHERE id_servico = ?
     )";
 }
 
-
 // Agrupar e Ordenar
 $query .= " GROUP BY e.id_empresa 
              ORDER BY e.avaliacao_media DESC, e.nome ASC";
 
-
 // --- C. EXECUTAR A QUERY ---
-// Esta parte requer ajuste para lidar com o filtro
 if ($filtro_servico_id > 0) {
     $stmt = mysqli_prepare($ligaDB, $query);
     mysqli_stmt_bind_param($stmt, "i", $filtro_servico_id);
@@ -56,7 +52,6 @@ if ($filtro_servico_id > 0) {
 
 $empresas = mysqli_fetch_all($resultado_empresas, MYSQLI_ASSOC);
 
-
 mysqli_close($ligaDB);
 ?>
 <!DOCTYPE html>
@@ -67,13 +62,12 @@ mysqli_close($ligaDB);
     <title>Encontre a Melhor Empresa de Piscinas</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
-        /* INÍCIO DO CSS DO LISTAR_EMPRESAS.PHP (estilos base + listagem) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
         :root { --fundo: #73b6fa; --cor-primaria: #005792; }
         
         body { background: #f4f4f4; color: #333; }
         
-        /* ESTILOS DO HEADER (COPIADOS DO INDEX.PHP) */
+        /* HEADER */
         header { 
             display: flex; 
             justify-content: space-between; 
@@ -88,18 +82,18 @@ mysqli_close($ligaDB);
         nav { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         nav a { color: white; text-decoration: none; font-weight: bold; margin: 0 10px; transition: color 0.3s; }
         nav a:hover { color: #ffcc00; }
+        
         .auth-buttons { display: flex; align-items: center; gap: 10px; margin-left: 20px; }
         .auth-buttons button { background: white; color: #005792; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; font-weight: bold; transition: background 0.3s; }
         .auth-buttons button:hover { background: #e0e0e0; }
         .admin-btn { background: #ffcc00 !important; color: #005792 !important; transition: background 0.3s; }
         .admin-btn:hover { background: #e0b300 !important; }
-        /* FIM ESTILOS DO HEADER */
-        
-        /* LISTAGEM */
+
+        /* TITULO E CONTAINER */
         .page-title { text-align: center; color: var(--cor-primaria); padding: 30px 20px 0; font-size: 28px; }
         .container-main { max-width: 1200px; margin: 20px auto 40px; padding: 0 20px; display: flex; gap: 30px; }
         
-        /* Sidebar de Filtros */
+        /* SIDEBAR */
         .sidebar { flex: 0 0 250px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); height: fit-content; }
         .sidebar h3 { color: #005792; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .filter-item { margin-bottom: 5px; }
@@ -107,18 +101,60 @@ mysqli_close($ligaDB);
         .filter-item a:hover { background: #e0f3ff; color: #005792; }
         .filter-item a.active { background: #005792; color: white; font-weight: bold; }
 
-        /* Área de Listagem */
+        /* LISTAGEM DE CARDS */
         .listing-area { flex-grow: 1; }
-        .empresa-card { background: white; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; gap: 20px; align-items: flex-start; }
+        
+        .empresa-card { 
+            background: white; 
+            padding: 25px; 
+            margin-bottom: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            display: flex; 
+            gap: 20px; 
+            align-items: flex-start; 
+            position: relative; /* Mantido para o link absoluto */
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .empresa-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            background-color: #fcfcfc;
+        }
+
+        /* --- ALTERAÇÃO AQUI: O link agora cobre TUDO --- */
+        .card-link {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10; /* Garante que fica por cima de todo o conteúdo do card */
+        }
+
+        .empresa-image { width: 100px; height: 100px; border-radius: 8px; object-fit: cover; border: 1px solid #ccc; position: relative; z-index: 2; }
+        .empresa-info { flex-grow: 1; position: relative; z-index: 2; }
         .empresa-card h2 { color: #005792; margin-top: 0; font-size: 24px; }
         .empresa-card p { font-size: 14px; color: #555; margin: 5px 0; }
-        .empresa-info { flex-grow: 1; }
-        .empresa-image { width: 100px; height: 100px; border-radius: 8px; object-fit: cover; border: 1px solid #ccc; }
+        
         .rating { font-size: 18px; color: #ffcc00; margin-bottom: 10px; }
         .rating span { color: #333; font-weight: bold; margin-left: 5px; }
-        .servicos-tag { display: inline-block; background: #e0f3ff; color: #005792; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; margin-top: 5px; }
         
-        /* Media Queries */
+        .servicos-tag { 
+            display: inline-block; 
+            background: #e0f3ff; 
+            color: #005792; 
+            padding: 3px 8px; 
+            border-radius: 4px; 
+            font-size: 12px; 
+            margin-right: 5px; 
+            margin-top: 5px; 
+            position: relative; 
+            z-index: 11; /* Mantido um pouco acima do link para não perder o destaque visual */
+        }
+        
         @media (max-width: 800px) {
             .container-main { flex-direction: column; }
             .sidebar { margin-bottom: 20px; }
@@ -146,21 +182,20 @@ mysqli_close($ligaDB);
 
         <div class="auth-buttons">
             <?php 
-            // BOTÃO ADMIN: Verificação de segurança
             if (isset($_SESSION['usuario']) && isset($_SESSION['usuario']['user_type']) && $_SESSION['usuario']['user_type'] === 'admin') {
-                echo '<button onclick="window.location.href=\'adicionar_empresa.php\'" class="admin-btn">+ Adicionar Empresa</button>';
+                echo '<button onclick="window.location.href=\'adicionar_empresa.php\'" class="admin-btn" style="position:relative; z-index:20;">+ Adicionar Empresa</button>';
             }
             
-            // BOTÕES DE AUTENTICAÇÃO
             if (isset($_SESSION['usuario'])) { ?>
                 <span>Olá, <?php echo htmlspecialchars($_SESSION['usuario']['nome']); ?>!</span>
-                <button onclick="window.location.href='logout.php'">Logout</button>
+                <button onclick="window.location.href='logout.php'" style="position:relative; z-index:20;">Logout</button>
             <?php } else { ?>
-                <button onclick="window.location.href='registar.php'">Registrar</button>
-                <button onclick="window.location.href='login.php'">Login</button>
+                <button onclick="window.location.href='registar.php'" style="position:relative; z-index:20;">Registrar</button>
+                <button onclick="window.location.href='login.php'" style="position:relative; z-index:20;">Login</button>
             <?php } ?>
         </div>
     </header>
+
     <h1 class="page-title">Encontre a Empresa Ideal para a sua Piscina</h1>
 
     <div class="container-main">
@@ -188,6 +223,8 @@ mysqli_close($ligaDB);
                 <?php foreach ($empresas as $empresa): ?>
                     <div class="empresa-card">
                         
+                        <a href="empresa.php?id=<?php echo $empresa['id_empresa']; ?>" class="card-link"></a>
+
                         <img src="<?php echo htmlspecialchars($empresa['imagem'] ?: 'assets/default_empresa.png'); ?>" 
                              alt="Logo da <?php echo htmlspecialchars($empresa['nome']); ?>" 
                              class="empresa-image">
@@ -209,27 +246,23 @@ mysqli_close($ligaDB);
                             
                             <div>
                                 <?php 
-                                // Divide a string de serviços e exibe como tags
-                                $servicos_array = explode(', ', $empresa['servicos_oferecidos']);
+                                $servicos_array = explode(', ', $empresa['servicos_oferecidos'] ?? '');
                                 foreach ($servicos_array as $servico_tag) {
-                                    echo '<span class="servicos-tag">' . htmlspecialchars($servico_tag) . '</span>';
+                                    if(!empty($servico_tag)) {
+                                        echo '<span class="servicos-tag">' . htmlspecialchars($servico_tag) . '</span>';
+                                    }
                                 }
                                 ?>
                             </div>
-                            
                         </div>
-
-                        <a href="empresa.php?id=<?php echo $empresa['id_empresa']; ?>" class="btn">
-                            Ver Detalhes
-                        </a>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
-                <p>Nenhuma empresa encontrada com os filtros selecionados.</p>
+                <p style="text-align:center; padding: 20px;">Nenhuma empresa encontrada com os filtros selecionados.</p>
             <?php endif; ?>
         </div>
 
     </div>
     
-    </body>
+</body>
 </html>
