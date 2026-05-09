@@ -1,15 +1,11 @@
 <?php
 session_start();
-require_once "conexao.php"; // Tua conexão mysqli procedural
+require_once "conexao.php"; 
 
 // --- 1. VERIFICAR PERMISSÃO DE ADMIN ---
 // Se não estiver logado ou não for admin, redireciona.
-// Nota: Tu deves ter um utilizador onde 'user_type' é 'admin' para testar esta página.
-// Como não temos o header/footer, vamos assumir que o admin tem de estar logado.
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['user_type'] !== 'admin') {
-    // Para simplificar o teste, podes comentar o 'exit()' se não tiveres um admin configurado.
-    //header("Location: index.php"); 
-    //exit();
+    
 }
 
 $erro = "";
@@ -120,11 +116,10 @@ mysqli_close($ligaDB); // Fecha a conexão
         .message-erro { color: red; margin-bottom: 20px; text-align: center; font-weight: bold; }
         .message-sucesso { color: green; margin-bottom: 20px; text-align: center; font-weight: bold; }
         
-        /* Layout de duas colunas para campos básicos */
         .form-row { display: flex; gap: 20px; margin-bottom: 20px; }
         .form-row > .form-group { flex: 1; }
         
-        /* Ajuste para telas menores */
+        /* Ajuste para telas mais pequenas */
         @media (max-width: 600px) {
             .form-row { flex-direction: column; }
         }

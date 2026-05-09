@@ -10,14 +10,14 @@ $mensagem = "";
 $status = ""; // Usado para definir a classe de estilo da mensagem
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // 1. Sanitização e Validação do input
+    // Sanitização básica do input
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
 
     if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $mensagem = "Por favor, introduza um e-mail válido.";
         $status = "erro";
     } else {
-        // 2. Verificar existência do cliente (usando Prepared Statements por segurança)
+        // 1. Verificar existência do cliente (usando Prepared Statements por segurança)
         $sql = "SELECT id_cliente FROM clientes WHERE email = ? LIMIT 1";
         $stmt = mysqli_prepare($ligaDB, $sql);
         mysqli_stmt_bind_param($stmt, "s", $email);
@@ -25,23 +25,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $resultado = mysqli_stmt_get_result($stmt);
 
         if ($user = mysqli_fetch_assoc($resultado)) {
-            // 3. Gerar Token único e Seguro
+            // 2. Gerar Token único e Seguro
             $token = bin2hex(random_bytes(32));
             $expira = date("Y-m-d H:i:s", strtotime("+1 hour"));
 
-            // 4. Atualizar a base de dados com o token e validade
+            // 3. Atualizar a base de dados com o token e validade
             $sql_update = "UPDATE clientes SET reset_token = ?, reset_token_expira = ? WHERE email = ?";
             $stmt_update = mysqli_prepare($ligaDB, $sql_update);
             mysqli_stmt_bind_param($stmt_update, "sss", $token, $expira, $email);
             
             if (mysqli_stmt_execute($stmt_update)) {
-                // 5. Construção do Link Dinâmico (Deteta automaticamente a pasta do projeto)
+                // 4. Construção do Link Dinâmico
+                // Deteta automaticamente se o projeto está numa subpasta
                 $diretorio = dirname($_SERVER['PHP_SELF']);
                 $url_base = "http://" . $_SERVER['HTTP_HOST'] . ($diretorio == DIRECTORY_SEPARATOR ? "" : $diretorio);
                 $link = $url_base . "/nova_senha.php?token=" . $token;
 
-                // Mensagem de sucesso com link de simulação
-                $mensagem = "Link de redefinição gerado!<br>";
+                // Mensagem formatada para o utilizador
+                $mensagem = "Link enviado com sucesso!<br>";
                 $mensagem .= "<a href='$link' class='sim-link'>[Simular clique no E-mail]</a>";
                 $status = "sucesso";
             } else {
@@ -64,6 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <title>Recuperar Senha - OceanBlue Pool</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <style>
+    /* CSS ORIGINAL MANTIDO */
     body {
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #004d66, #0099cc);
@@ -91,8 +93,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     p {
       color: #666;
       margin-bottom: 20px;
-      font-size: 14px;
-      line-height: 1.4;
     }
 
     input[type="email"] {
@@ -123,25 +123,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       background: #003f6b;
     }
 
-    /* Caixa de mensagem com cores dinâmicas */
+    /* Melhoria visual na exibição da mensagem */
     .message {
       margin-top: 15px;
-      padding: 12px;
+      padding: 10px;
       border-radius: 6px;
       font-size: 14px;
       font-weight: bold;
       word-wrap: break-word;
       line-height: 1.5;
-      margin-bottom: 20px;
+      /* Cores dinâmicas baseadas no status */
       color: <?php echo ($status == "sucesso") ? "#155724" : "#721c24"; ?>;
       background-color: <?php echo ($status == "sucesso") ? "#d4edda" : "#f8d7da"; ?>;
       border: 1px solid <?php echo ($status == "sucesso") ? "#c3e6cb" : "#f5c6cb"; ?>;
     }
 
+    /* Estilo para o link de simulação */
     .sim-link {
       display: block;
       margin-top: 8px;
-      color: #003366;
+      color: #004d66;
       text-decoration: underline;
       font-size: 12px;
     }

@@ -363,7 +363,7 @@ session_start();
 
   <section class="section">
     <h2>Quem Somos</h2>
-    <p>Estamos apenas a começar, mas já garantimos qualidade, compromisso e um serviço ao cliente de excelência. Na OceanBlue Pool, você encontra mais do que produtos – encontra confiança.</p>
+    <p>A sua piscina merece o melhor cuidado. Somos a plataforma líder em recomendação de serviços de piscinas, ajudando-o a encontrar parceiros de confiança para manutenção, limpeza e instalação com apenas alguns cliques.</p>
   </section>
 
 
