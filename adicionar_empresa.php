@@ -2,6 +2,9 @@
 session_start();
 require_once "conexao.php"; 
 
+require_once "verificar_login.php";
+protegerPagina('admin'); // Verifica se está logado E se é admin
+
 // --- 1. VERIFICAR PERMISSÃO DE ADMIN ---
 // Se não estiver logado ou não for admin, redireciona.
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['user_type'] !== 'admin') {

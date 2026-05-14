@@ -317,8 +317,15 @@ session_start();
       <a href="empresa.php">Empresas</a>
       <a href="recomendacao.php">Conselheiro</a>
       <a href="orcamento.php">Orçamento</a>
-      <a href="servicos.php">Serviços</a>
     </nav>
+
+    <?php if (isset($_GET['erro']) && $_GET['erro'] == 'sem_permissao'): ?>
+        <script>alert('Acesso negado! Esta área é exclusiva para administradores.');</script>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['erro']) && $_GET['erro'] == 'restrito'): ?>
+        <script>alert('Por favor, faça login para aceder a esta página.');</script>
+    <?php endif; ?>
 
     <div class="auth-buttons">
       

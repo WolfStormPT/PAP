@@ -5,6 +5,9 @@ $user = 'root';
 $pass = '';
 $dbname = 'pap';
 
+require_once "verificar_login.php";
+protegerPagina(); // Apenas verifica se está logado
+
 $conn = new mysqli($host, $user, $pass, $dbname);
 if ($conn->connect_error) {
     die("Erro de conexão: " . $conn->connect_error);
