@@ -8,7 +8,7 @@ protegerPagina('admin'); // Verifica se está logado E se é admin
 // --- 1. VERIFICAR PERMISSÃO DE ADMIN ---
 // Se não estiver logado ou não for admin, redireciona.
 if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['user_type'] !== 'admin') {
-    
+    // Redirecionamento já é feito pela função protegerPagina, mas deixo a estrutura caso precises
 }
 
 $erro = "";
@@ -91,11 +91,18 @@ mysqli_close($ligaDB); // Fecha a conexão
     <link rel="stylesheet" href="styles.css"> 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
-        body { background: #f4f4f4; padding-top: 50px; }
+        
+        /* APLICADO O AZUL DO PROJETO */
+        body { 
+            background: linear-gradient(135deg, #004d66, #0099cc); 
+            padding-top: 50px; 
+            min-height: 100vh;
+        }
+
         .container { 
             background: white; padding: 40px; margin: 0 auto 50px; 
             width: 80%; max-width: 900px; 
-            border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); 
         }
         h2 { color: #003366; margin-bottom: 25px; text-align: center; }
         .form-group { margin-bottom: 20px; }
@@ -113,7 +120,7 @@ mysqli_close($ligaDB); // Fecha a conexão
         .btn { 
             width: 100%; padding: 12px; background: #005792; color: white; border: none; 
             cursor: pointer; border-radius: 6px; font-size: 16px; transition: background 0.3s; 
-            margin-top: 15px;
+            margin-top: 15px; font-weight: bold;
         }
         .btn:hover { background: #003f6b; }
         .message-erro { color: red; margin-bottom: 20px; text-align: center; font-weight: bold; }
@@ -126,7 +133,6 @@ mysqli_close($ligaDB); // Fecha a conexão
         @media (max-width: 600px) {
             .form-row { flex-direction: column; }
         }
-
     </style>
 </head>
 <body>
@@ -195,5 +201,5 @@ mysqli_close($ligaDB); // Fecha a conexão
         </form>
     </div>
 
-    </body>
+</body>
 </html>
