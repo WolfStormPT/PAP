@@ -316,7 +316,6 @@ session_start();
     <nav>
       <a href="empresa.php">Empresas</a>
       <a href="recomendacao.php">Conselheiro</a>
-      <a href="orcamento.php">Orçamento</a>
     </nav>
 
     <?php if (isset($_GET['erro']) && $_GET['erro'] == 'sem_permissao'): ?>
@@ -330,14 +329,14 @@ session_start();
     <div class="auth-buttons">
       
       <?php 
+      // Se estiver logado e for administrador, exibe os botões de controlo do backoffice
       if (
-        isset($_SESSION['usuario']) &&
         isset($_SESSION['usuario']['user_type']) &&
         $_SESSION['usuario']['user_type'] === 'admin'
       ) {
       ?>
-          <button onclick="window.location.href='adicionar_empresa.php'" class="admin-btn">
-              + Adicionar Empresa
+          <button onclick="window.location.href='admin_empresas.php'" class="admin-btn">
+              ⚙️ Painel Admin
           </button>
       <?php 
       }
@@ -359,7 +358,6 @@ session_start();
     <div class="video-box">
       <video autoplay muted loop playsinline>
         <source src="assets/video-fundo.mp4" type="video/mp4">
-        Seu navegador não suporta vídeos em HTML5.
       </video>
       <div class="hero-content">
         <h1>Bem-vindo à OceanBlue Pool</h1>

@@ -175,9 +175,7 @@ mysqli_close($ligaDB);
 
         <nav>
             <a href="listar_empresas.php">Empresas</a> 
-            <a href="piscinas.php">Piscinas</a>
-            <a href="orcamento.php">Orçamento</a>
-            <a href="servicos.php">Serviços</a>
+            <a href="recomendacao.php">Concelheiro</a>
         </nav>
 
         <div class="auth-buttons">
@@ -192,6 +190,7 @@ mysqli_close($ligaDB);
             <?php } else { ?>
                 <button onclick="window.location.href='registar.php'" style="position:relative; z-index:20;">Registrar</button>
                 <button onclick="window.location.href='login.php'" style="position:relative; z-index:20;">Login</button>
+                
             <?php } ?>
         </div>
     </header>

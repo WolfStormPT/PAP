@@ -20,14 +20,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
     
     $servico_id_escolhido = isset($_POST['servico_id']) ? intval($_POST['servico_id']) : 0;
     $foco_escolhido = $_POST['foco'] ?? 'avaliacao';
-    // O valor 'nao_quero' passará a ser tratado como vazio/ignorado
     $tipo_piscina_escolhido = trim($_POST['tipo_piscina'] ?? '');
     
     if ($servico_id_escolhido === 0) {
         $erro = "Por favor, selecione o tipo de serviço que precisa.";
     } else {
         
-        // --- 3. CONSTRUIR A CONSULTA INTELIGENTE (A MINI-IA) ---
+        // --- 3. CONSTRUIR A CONSULTA INTELIGENTE ---
         $query = "
             SELECT 
                 e.id_empresa, 
@@ -48,7 +47,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
         $params = [$servico_id_escolhido];
         $types = "i";
 
-        // MUDANÇA NA LÓGICA PHP (LINHAS 46-51): IGNORAR O FILTRO SE FOR "nao_quero"
         if (!empty($tipo_piscina_escolhido) && $tipo_piscina_escolhido !== 'nao_quero') {
             $query .= " AND e.descricao LIKE ?";
             $params[] = "%" . $tipo_piscina_escolhido . "%";
@@ -58,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
         // Agrupar Resultados
         $query .= " GROUP BY e.id_empresa";
         
-        // ORDENAÇÃO: Critério baseado no foco do utilizador
+        // ORDENAÇÃO: Critério baseado no foco do utilizador (Match de Proximidade)
         if ($foco_escolhido === 'avaliacao') {
             $query .= " ORDER BY e.avaliacao_media DESC, e.nome ASC";
         } elseif ($foco_escolhido === 'localizacao') {
@@ -71,10 +69,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
         // --- 4. EXECUTAR A CONSULTA ---
         $stmt = mysqli_prepare($ligaDB, $query);
         
-        // Bind parameters dinamicamente (usando call_user_func_array para o bind)
         if (!empty($types)) {
             $bind_params = array_merge([$types], $params);
-            // Corrigindo o problema de referência do bind_param (como visto na última interação)
             $refs = [];
             foreach ($bind_params as $key => $value) {
                 $refs[$key] = &$bind_params[$key];
@@ -98,14 +94,12 @@ mysqli_close($ligaDB);
     <title>Conselheiro de Empresas de Piscinas</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
-        /* CSS Principal e Header do Index (para consistência visual) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
         :root { --cor-principal: #005792; --cor-secundaria: #ffcc00; --fundo: #f4f4f4; }
         
         body { background: var(--fundo); color: #333; min-height: 100vh; display: flex; flex-direction: column; }
-        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; flex: 1; } /* Adicionado flex: 1 */
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; flex: 1; }
         
-        /* ESTILOS DO HEADER (COPIADOS DO INDEX.PHP) */
         header { 
             display: flex; 
             justify-content: space-between; 
@@ -126,7 +120,6 @@ mysqli_close($ligaDB);
         .admin-btn { background: #ffcc00 !important; color: #005792 !important; transition: background 0.3s; }
         .admin-btn:hover { background: #e0b300 !important; }
         
-        /* ESTILOS ESPECÍFICOS DO FORMULÁRIO */
         .form-section { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
         .form-section h2 { color: var(--cor-principal); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
         .form-group { margin-bottom: 20px; }
@@ -139,11 +132,9 @@ mysqli_close($ligaDB);
         .btn:hover { background: #003f6b; }
         .message-erro { color: red; margin-bottom: 20px; text-align: center; font-weight: bold; }
 
-        /* Área de Resultados */
         .results-section { margin-top: 40px; }
         .results-section h2 { color: #388e3c; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
         
-        /* AJUSTE PARA CARD CLICÁVEL */
         .empresa-card { 
             background: white; 
             padding: 20px; 
@@ -151,13 +142,13 @@ mysqli_close($ligaDB);
             box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
             margin-bottom: 15px; 
             border-left: 5px solid var(--cor-secundaria); 
-            position: relative; /* Adicionado */
-            transition: transform 0.2s; /* Adicionado */
-            cursor: pointer; /* Adicionado */
+            position: relative; 
+            transition: transform 0.2s; 
+            cursor: pointer; 
         }
-        .empresa-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); } /* Adicionado */
+        .empresa-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         
-        .card-link { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; } /* Adicionado */
+        .card-link { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
 
         .empresa-card h3 { color: var(--cor-principal); margin-bottom: 5px; position: relative; z-index: 2; }
         .rating { color: var(--cor-secundaria); font-weight: bold; margin-bottom: 5px; position: relative; z-index: 2; }
@@ -165,7 +156,6 @@ mysqli_close($ligaDB);
         .recommendation-reason { font-style: italic; margin-top: 10px; color: #555; position: relative; z-index: 2; }
         .top-label { background: #ffcc00; color: #005792; padding: 3px 8px; border-radius: 4px; font-weight: bold; margin-bottom: 5px; display: inline-block; position: relative; z-index: 2; }
 
-        /* NOVO: Badge de Match */
         .match-badge {
             float: right;
             background: #388e3c;
@@ -178,13 +168,12 @@ mysqli_close($ligaDB);
             z-index: 2;
         }
 
-        /* ESTILOS DO FOOTER (COPIADOS DO INDEX.PHP) */
         footer {
             background: #004d80;
             color: #e0f3ff;
             padding: 25px 20px;
             text-align: center;
-            margin-top: auto; /* Garante que fica no fundo */
+            margin-top: auto; 
             font-size: 14px;
         }
         footer .footer-links { margin-bottom: 10px; }
@@ -207,14 +196,12 @@ mysqli_close($ligaDB);
         <nav>
             <a href="listar_empresas.php">Empresas</a>
             <a href="recomendacao.php">Conselheiro</a>
-            <a href="orcamento.php">Orçamento</a>
-            <a href="servicos.php">Serviços</a>
         </nav>
 
         <div class="auth-buttons">
             <?php 
             if (isset($_SESSION['usuario']) && isset($_SESSION['usuario']['user_type']) && $_SESSION['usuario']['user_type'] === 'admin') {
-                echo '<button onclick="window.location.href=\'adicionar_empresa.php\'" class="admin-btn">+ Adicionar Empresa</button>';
+                echo '<button onclick="window.location.href=\'admin_empresas.php\'" class="admin-btn">⚙️ Painel Admin</button>';
             }
             
             if (isset($_SESSION['usuario'])) { ?>
@@ -259,7 +246,6 @@ mysqli_close($ligaDB);
                     </select>
                 </div>
 
-
                 <div class="form-group">
                     <label>3. Qual é o seu foco principal?</label>
                     <div class="radio-group">
@@ -287,7 +273,8 @@ mysqli_close($ligaDB);
                 <h2>⭐ Top <?php echo count($recomendacoes); ?> Empresas Recomendadas</h2>
 
                 <?php foreach ($recomendacoes as $key => $empresa): 
-                    // Cálculo simples do Match baseado na nota
+                    // Se o foco for avaliação, o Match é estritamente pela nota.
+                    // Se for localização, damos um peso geográfico explicativo.
                     $match = ($empresa['avaliacao_media'] / 5) * 100;
                 ?>
                     <div class="empresa-card">
@@ -323,12 +310,18 @@ mysqli_close($ligaDB);
 
                         <div class="recommendation-reason">
                             <?php 
-                            if ($key === 0) {
-                                echo "É a nossa melhor escolha com base nas suas preferências e avaliação.";
-                            } elseif ($foco_escolhido === 'avaliacao') {
-                                echo "Alta classificação de clientes que procuram qualidade no serviço.";
-                            } elseif ($foco_escolhido === 'localizacao') {
-                                echo "Empresa com boa localização e que oferece o serviço solicitado.";
+                            if ($foco_escolhido === 'localizacao') {
+                                if ($key === 0) {
+                                    echo "Esta é a empresa parceira mais próxima de si que atende aos critérios de tipo de piscina e oferece o serviço pretendido.";
+                                } else {
+                                    echo "Filtro geográfico ativo: excelente alternativa regional para agilizar deslocações e equipas.";
+                                }
+                            } else {
+                                if ($key === 0) {
+                                    echo "É a nossa melhor escolha com base nas suas preferências e avaliação global.";
+                                } else {
+                                    echo "Alta classificação de clientes que procuram qualidade e consistência no serviço.";
+                                }
                             }
                             ?>
                         </div>
@@ -342,7 +335,7 @@ mysqli_close($ligaDB);
             </div>
         <?php elseif ($_SERVER["REQUEST_METHOD"] == "POST" && empty($erro)): ?>
             <div class="results-section">
-                <p>Nenhuma empresa encontrada que corresponda aos serviços solicitados.</p>
+                <p>Nenhuma empresa encontrada que corresponda aos serviços e tipo de piscina solicitados.</p>
             </div>
         <?php endif; ?>
         
@@ -351,7 +344,7 @@ mysqli_close($ligaDB);
     <footer>
         <div class="footer-links">
             <a href="index.php">Início</a>
-            <a href="produtos.php">Produtos</a>
+            <a href="listar_empresas.php">Empresas</a>
             <a href="sobre.php">Sobre</a>
             <a href="contato.php">Contato</a>
         </div>

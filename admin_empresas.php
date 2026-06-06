@@ -170,9 +170,96 @@ $empresas = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
       color: #d9534f;
       text-decoration: none;
       font-weight: bold;
+      cursor: pointer;
     }
 
     .btn-del:hover { color: #c9302c; }
+
+    /* ESTILOS DO NOVO POP-UP (MODAL MODERNO) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      transform: scale(0.8);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal-box {
+      transform: scale(1);
+    }
+
+    .modal-box h3 {
+      color: #003366;
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .modal-box p {
+      color: #666;
+      font-size: 15px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .modal-btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .modal-btn-confirm {
+      background: #d9534f;
+      color: white;
+    }
+
+    .modal-btn-confirm:hover {
+      background: #c9302c;
+    }
+
+    .modal-btn-cancel {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .modal-btn-cancel:hover {
+      background: #d4d4d4;
+    }
 
     footer {
       background: #004d80;
@@ -211,7 +298,6 @@ $empresas = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
     <nav>
       <a href="listar_empresas.php">Empresas</a>
       <a href="recomendacao.php">Conselheiro</a>
-      <a href="orcamento.php">Orçamento</a>
     </nav>
 
     <div class="auth-buttons">
@@ -249,9 +335,7 @@ $empresas = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
                     <td data-label="Avaliação">⭐ <?php echo number_format($e['avaliacao_media'], 1); ?></td>
                     <td class="actions">
                         <a href="editar_empresa.php?id=<?php echo $e['id_empresa']; ?>" class="btn-edit">Editar</a>
-                        <a href="eliminar_empresa.php?id=<?php echo $e['id_empresa']; ?>" 
-                           class="btn-del" 
-                           onclick="return confirm('Tem a certeza que deseja eliminar esta empresa?')">Eliminar</a>
+                        <a onclick="abrirConfirmacao('<?php echo $e['id_empresa']; ?>', '<?php echo htmlspecialchars(addslashes($e['nome'])); ?>')" class="btn-del">Eliminar</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -259,6 +343,17 @@ $empresas = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
         </table>
     </div>
   </section>
+
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+      <h3>Confirmar Remoção</h3>
+      <p>Tem a certeza que deseja eliminar a empresa <strong id="nomeEmpresaModal"></strong>?<br>Esta ação não pode ser desfeita.</p>
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-cancel" onclick="fecharConfirmacao()">Cancelar</button>
+        <button class="modal-btn modal-btn-confirm" id="btnConfirmarDelete">Eliminar</button>
+      </div>
+    </div>
+  </div>
 
   <footer>
     <div class="footer-links">
@@ -271,6 +366,26 @@ $empresas = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
       &copy; <?php echo date("Y"); ?> OceanBlue Pool - Área Administrativa
     </div>
   </footer>
+
+  <script>
+    function abrirConfirmacao(id, nome) {
+      // Injeta o nome da empresa correspondente no texto do modal
+      document.getElementById('nomeEmpresaModal').innerText = nome;
+      
+      // Define dinamicamente o link de redirecionamento com o ID correto no botão de confirmação
+      document.getElementById('btnConfirmarDelete').onclick = function() {
+        window.location.href = 'eliminar_empresa.php?id=' + id;
+      };
+
+      // Mostra o pop-up com efeito suave
+      document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function fecharConfirmacao() {
+      // Oculta o pop-up
+      document.getElementById('deleteModal').classList.remove('active');
+    }
+  </script>
 
 </body>
 </html>
