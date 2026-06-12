@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "conexao.php"; // Tua conexão mysqli procedural
+require_once "conexao.php"; 
 
 $recomendacoes = [];
 $servicos_disponiveis = [];
@@ -9,13 +9,26 @@ $foco_escolhido = "";
 $servico_id_escolhido = 0;
 $tipo_piscina_escolhido = "";
 
-// --- 1. OBTER SERVIÇOS DISPONÍVEIS (PARA O FORMULÁRIO) ---
+// Variáveis para guardar a localização do utilizador enviada pelo JS
+$user_lat = isset($_POST['user_lat']) ? floatval($_POST['user_lat']) : 0;
+$user_lng = isset($_POST['user_lng']) ? floatval($_POST['user_lng']) : 0;
+
+// =========================================================================
+// CORREÇÃO: MECANISMO DE FALLBACK PARA COMPUTAÇÃO COM BLOQUEIO DE PRIVACIDADE
+// Se o sistema operativo bloquear as coordenadas (virem a 0), injetamos Lisboa.
+// =========================================================================
+if ($user_lat === 0.0 && $user_lng === 0.0) {
+    $user_lat = 38.7223; // Centro Geográfico de Lisboa
+    $user_lng = -9.1393;
+}
+
+// --- 1. OBTER SERVIÇOS DISPONÍVEIS ---
 $sql_servicos = "SELECT id_servico, nome_servico FROM serviços ORDER BY nome_servico";
 $resultado_servicos = mysqli_query($ligaDB, $sql_servicos);
 $servicos_disponiveis = mysqli_fetch_all($resultado_servicos, MYSQLI_ASSOC);
 
 
-// --- 2. PROCESSAR O FORMULÁRIO DE RECOMENDAÇÃO ---
+// --- 2. PROCESSAR O FORMULÁRIO ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])) {
     
     $servico_id_escolhido = isset($_POST['servico_id']) ? intval($_POST['servico_id']) : 0;
@@ -26,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
         $erro = "Por favor, selecione o tipo de serviço que precisa.";
     } else {
         
-        // --- 3. CONSTRUIR A CONSULTA INTELIGENTE ---
+        // --- 3. CONSTRUIR A CONSULTA COM A FÓRMULA DE HAVERSINE ---
         $query = "
             SELECT 
                 e.id_empresa, 
@@ -34,7 +47,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
                 e.localizacao,
                 e.avaliacao_media,
                 e.descricao,
-                GROUP_CONCAT(s.nome_servico SEPARATOR ', ') AS servicos_oferecidos
+                GROUP_CONCAT(s.nome_servico SEPARATOR ', ') AS servicos_oferecidos,
+                (6371 * ACOS(
+                    COS(RADIANS(?)) * COS(RADIANS(e.latitude)) * COS(RADIANS(e.longitude) - RADIANS(?)) + 
+                    SIN(RADIANS(?)) * SIN(RADIANS(e.latitude))
+                )) AS distancia_km
             FROM 
                 empresas e
             JOIN 
@@ -44,8 +61,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
             WHERE 
                 es.id_servico = ? 
         ";
-        $params = [$servico_id_escolhido];
-        $types = "i";
+        
+        $params = [$user_lat, $user_lng, $user_lat, $servico_id_escolhido];
+        $types = "dddi"; 
 
         if (!empty($tipo_piscina_escolhido) && $tipo_piscina_escolhido !== 'nao_quero') {
             $query .= " AND e.descricao LIKE ?";
@@ -53,17 +71,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
             $types .= "s";
         }
         
-        // Agrupar Resultados
         $query .= " GROUP BY e.id_empresa";
         
-        // ORDENAÇÃO: Critério baseado no foco do utilizador (Match de Proximidade)
+        // ORDENAÇÃO INTELIGENTE
         if ($foco_escolhido === 'avaliacao') {
             $query .= " ORDER BY e.avaliacao_media DESC, e.nome ASC";
         } elseif ($foco_escolhido === 'localizacao') {
-            $query .= " ORDER BY e.localizacao ASC, e.avaliacao_media DESC";
+            $query .= " ORDER BY distancia_km ASC, e.avaliacao_media DESC";
         }
         
-        // Limita o resultado ao TOP 3
         $query .= " LIMIT 3";
 
         // --- 4. EXECUTAR A CONSULTA ---
@@ -101,34 +117,24 @@ mysqli_close($ligaDB);
         .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; flex: 1; }
         
         header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 15px 50px; 
-            background: #005792; 
-            color: white; 
-            flex-wrap: wrap; 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 50px; background: #005792; color: white; flex-wrap: wrap; 
         }
         .logo a { display: flex; align-items: center; text-decoration: none; color: white; }
         .logo img { height: 50px; margin-right: 10px; }
         nav { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        nav a { color: white; text-decoration: none; font-weight: bold; margin: 0 10px; transition: color 0.3s; }
-        nav a:hover { color: #ffcc00; }
-        .auth-buttons { display: flex; align-items: center; gap: 10px; margin-left: 20px; }
-        .auth-buttons button { background: white; color: #005792; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; font-weight: bold; transition: background 0.3s; }
-        .auth-buttons button:hover { background: #e0e0e0; }
-        .admin-btn { background: #ffcc00 !important; color: #005792 !important; transition: background 0.3s; }
-        .admin-btn:hover { background: #e0b300 !important; }
+        nav a { color: white; text-decoration: none; font-weight: bold; margin: 0 10px; }
+        .auth-buttons button { background: white; color: #005792; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .admin-btn { background: #ffcc00 !important; color: #005792 !important; }
         
         .form-section { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
         .form-section h2 { color: var(--cor-principal); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
         select, .radio-group { padding: 10px; border: 1px solid #ccc; border-radius: 6px; background-color: #f9f9f9; width: 100%; max-width: 400px; }
-        .radio-group label { display: inline-block; font-weight: normal; margin-right: 20px; margin-bottom: 0; cursor: pointer; }
-        .radio-group input { margin-right: 5px; }
+        .radio-group label { display: inline-block; font-weight: normal; margin-right: 20px; cursor: pointer; }
 
-        .btn { background: var(--cor-principal); color: white; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; margin-top: 15px; transition: background 0.3s; font-weight: bold; }
+        .btn { background: var(--cor-principal); color: white; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; margin-top: 15px; font-weight: bold; }
         .btn:hover { background: #003f6b; }
         .message-erro { color: red; margin-bottom: 20px; text-align: center; font-weight: bold; }
 
@@ -136,18 +142,11 @@ mysqli_close($ligaDB);
         .results-section h2 { color: #388e3c; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
         
         .empresa-card { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-            margin-bottom: 15px; 
-            border-left: 5px solid var(--cor-secundaria); 
-            position: relative; 
-            transition: transform 0.2s; 
-            cursor: pointer; 
+            background: white; padding: 20px; border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; 
+            border-left: 5px solid var(--cor-secundaria); position: relative; transition: transform 0.2s; cursor: pointer; 
         }
         .empresa-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        
         .card-link { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
 
         .empresa-card h3 { color: var(--cor-principal); margin-bottom: 5px; position: relative; z-index: 2; }
@@ -156,31 +155,11 @@ mysqli_close($ligaDB);
         .recommendation-reason { font-style: italic; margin-top: 10px; color: #555; position: relative; z-index: 2; }
         .top-label { background: #ffcc00; color: #005792; padding: 3px 8px; border-radius: 4px; font-weight: bold; margin-bottom: 5px; display: inline-block; position: relative; z-index: 2; }
 
-        .match-badge {
-            float: right;
-            background: #388e3c;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            position: relative;
-            z-index: 2;
-        }
+        .match-badge { float: right; background: #388e3c; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; position: relative; z-index: 2; }
+        .distancia-badge { float: right; background: #005792; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; position: relative; z-index: 2; margin-right: 10px; }
 
-        footer {
-            background: #004d80;
-            color: #e0f3ff;
-            padding: 25px 20px;
-            text-align: center;
-            margin-top: auto; 
-            font-size: 14px;
-        }
-        footer .footer-links { margin-bottom: 10px; }
-        footer .footer-links a { color: #cce7f5; margin: 0 12px; text-decoration: none; font-weight: 500; transition: color 0.3s; }
-        footer .footer-links a:hover { color: white; }
-        footer .copy { font-size: 13px; color: #a2d3f3; }
-        
+        footer { background: #004d80; color: #e0f3ff; padding: 25px 20px; text-align: center; margin-top: auto; font-size: 14px; }
+        footer .footer-links a { color: #cce7f5; margin: 0 12px; text-decoration: none; }
     </style>
 </head>
 <body>
@@ -192,18 +171,15 @@ mysqli_close($ligaDB);
                 <span>OceanBlue Pool</span>
             </a>
         </div>
-
         <nav>
             <a href="listar_empresas.php">Empresas</a>
             <a href="recomendacao.php">Conselheiro</a>
         </nav>
-
         <div class="auth-buttons">
             <?php 
             if (isset($_SESSION['usuario']) && isset($_SESSION['usuario']['user_type']) && $_SESSION['usuario']['user_type'] === 'admin') {
                 echo '<button onclick="window.location.href=\'admin_empresas.php\'" class="admin-btn">⚙️ Painel Admin</button>';
             }
-            
             if (isset($_SESSION['usuario'])) { ?>
                 <span>Olá, <?php echo htmlspecialchars($_SESSION['usuario']['nome']); ?>!</span>
                 <button onclick="window.location.href='logout.php'">Logout</button>
@@ -215,20 +191,21 @@ mysqli_close($ligaDB);
     </header>
 
     <div class="container">
-        
         <div class="form-section">
             <h2>Diga-nos o que precisa:</h2>
             <?php if (!empty($erro)) { echo "<p class='message-erro'>$erro</p>"; } ?>
             
-            <form action="recomendacao.php" method="POST">
-                
+            <form action="recomendacao.php" method="POST" id="formRecomendacao">
+                <!-- CAMPOS OCULTOS PARA GUARDAR A GEOLOCALIZAÇÃO -->
+                <input type="hidden" name="user_lat" id="user_lat" value="0">
+                <input type="hidden" name="user_lng" id="user_lng" value="0">
+
                 <div class="form-group">
                     <label for="servico_id">1. Qual tipo de serviço você procura?</label>
                     <select id="servico_id" name="servico_id" required>
                         <option value="">-- Selecione um Serviço --</option>
                         <?php foreach ($servicos_disponiveis as $servico): ?>
-                            <option value="<?php echo $servico['id_servico']; ?>"
-                                <?php echo ($servico_id_escolhido == $servico['id_servico']) ? 'selected' : ''; ?>>
+                            <option value="<?php echo $servico['id_servico']; ?>" <?php echo ($servico_id_escolhido == $servico['id_servico']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($servico['nome_servico']); ?>
                             </option>
                         <?php endforeach; ?>
@@ -250,14 +227,12 @@ mysqli_close($ligaDB);
                     <label>3. Qual é o seu foco principal?</label>
                     <div class="radio-group">
                         <label>
-                            <input type="radio" name="foco" value="avaliacao" required 
-                                <?php echo ($foco_escolhido === 'avaliacao' || $foco_escolhido === '') ? 'checked' : ''; ?>>
+                            <input type="radio" name="foco" value="avaliacao" required <?php echo ($foco_escolhido === 'avaliacao' || $foco_escolhido === '') ? 'checked' : ''; ?>>
                             Melhor Avaliação / Qualidade
                         </label>
                         <label>
-                            <input type="radio" name="foco" value="localizacao" required
-                                <?php echo ($foco_escolhido === 'localizacao') ? 'checked' : ''; ?>>
-                            Empresa Mais Próxima (Localização)
+                            <input type="radio" name="foco" value="localizacao" id="radioLocalizacao" required <?php echo ($foco_escolhido === 'localizacao') ? 'checked' : ''; ?>>
+                            Empresa Mais Próxima (Geolocalização)
                         </label>
                     </div>
                 </div>
@@ -273,30 +248,27 @@ mysqli_close($ligaDB);
                 <h2>⭐ Top <?php echo count($recomendacoes); ?> Empresas Recomendadas</h2>
 
                 <?php foreach ($recomendacoes as $key => $empresa): 
-                    // Se o foco for avaliação, o Match é estritamente pela nota.
-                    // Se for localização, damos um peso geográfico explicativo.
                     $match = ($empresa['avaliacao_media'] / 5) * 100;
                 ?>
                     <div class="empresa-card">
-                        
                         <a href="empresa.php?id=<?php echo $empresa['id_empresa']; ?>" class="card-link"></a>
 
                         <div class="match-badge">
                             <?php echo round($match); ?>% Match
                         </div>
 
+                        <?php if (isset($empresa['distancia_km']) && $empresa['distancia_km'] !== null): ?>
+                            <div class="distancia-badge">
+                                📍 a <?php echo number_format($empresa['distancia_km'], 1); ?> km
+                            </div>
+                        <?php endif; ?>
+
                         <div class="top-label">
                              Recomendação #<?php echo $key + 1; ?>
                         </div>
                         
-                        <h3>
-                            <?php echo htmlspecialchars($empresa['nome']); ?>
-                        </h3>
-                        
-                        <div class="rating">
-                            Nota Média: <?php echo number_format($empresa['avaliacao_media'], 2); ?>
-                        </div>
-                        
+                        <h3><?php echo htmlspecialchars($empresa['nome']); ?></h3>
+                        <div class="rating">Nota Média: <?php echo number_format($empresa['avaliacao_media'], 2); ?></div>
                         <p style="position:relative; z-index:2;"><strong>Localização:</strong> <?php echo htmlspecialchars($empresa['localizacao']); ?></p>
 
                         <div>
@@ -312,9 +284,9 @@ mysqli_close($ligaDB);
                             <?php 
                             if ($foco_escolhido === 'localizacao') {
                                 if ($key === 0) {
-                                    echo "Esta é a empresa parceira mais próxima de si que atende aos critérios de tipo de piscina e oferece o serviço pretendido.";
+                                    echo "Esta é a empresa parceira mais próxima calculada a partir de Lisboa (Ponto de Origem Padrão) que realiza o serviço pretendido.";
                                 } else {
-                                    echo "Filtro geográfico ativo: excelente alternativa regional para agilizar deslocações e equipas.";
+                                    echo "Excelente alternativa regional mapeada pelo nosso conselheiro.";
                                 }
                             } else {
                                 if ($key === 0) {
@@ -325,11 +297,7 @@ mysqli_close($ligaDB);
                             }
                             ?>
                         </div>
-                        
-                        <div class="btn" style="width: auto; margin-top: 15px; display: inline-block; position: relative; z-index: 5;">
-                            Ver Detalhes e Contactar
-                        </div>
-
+                        <div class="btn" style="width: auto; margin-top: 15px; display: inline-block; position: relative; z-index: 5;">Ver Detalhes e Contactar</div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -338,7 +306,6 @@ mysqli_close($ligaDB);
                 <p>Nenhuma empresa encontrada que corresponda aos serviços e tipo de piscina solicitados.</p>
             </div>
         <?php endif; ?>
-        
     </div>
     
     <footer>
@@ -348,10 +315,20 @@ mysqli_close($ligaDB);
             <a href="sobre.php">Sobre</a>
             <a href="contato.php">Contato</a>
         </div>
-        <div class="copy">
-            &copy; <?php echo date("Y"); ?> OceanBlue Pool - Todos os direitos reservados
-        </div>
+        <div class="copy">&copy; <?php echo date("Y"); ?> OceanBlue Pool - Todos os direitos reservados</div>
     </footer>
 
+    <script>
+        window.onload = function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    document.getElementById('user_lat').value = position.coords.latitude;
+                    document.getElementById('user_lng').value = position.coords.longitude;
+                }, function(error) {
+                    console.log("Localização bloqueada. O sistema assumirá Lisboa automaticamente.");
+                });
+            }
+        };
+    </script>
 </body>
 </html>
