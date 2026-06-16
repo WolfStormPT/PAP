@@ -181,7 +181,7 @@ mysqli_close($ligaDB);
         <div class="auth-buttons">
             <?php 
             if (isset($_SESSION['usuario']) && isset($_SESSION['usuario']['user_type']) && $_SESSION['usuario']['user_type'] === 'admin') {
-                echo '<button onclick="window.location.href=\'adicionar_empresa.php\'" class="admin-btn" style="position:relative; z-index:20;">+ Adicionar Empresa</button>';
+                echo '<button onclick="window.location.href=\'admin_empresas.php\'" class="admin-btn" style="position:relative; z-index:20;">Painel Admin</button>';
             }
             
             if (isset($_SESSION['usuario'])) { ?>

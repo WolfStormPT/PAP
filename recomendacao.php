@@ -1,4 +1,4 @@
-<?php
+<?
 session_start();
 require_once "conexao.php"; 
 
@@ -63,8 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
         ";
         
         $params = [$user_lat, $user_lng, $user_lat, $servico_id_escolhido];
-        $types = "dddi"; 
-
+        $types = "dddi";
         if (!empty($tipo_piscina_escolhido) && $tipo_piscina_escolhido !== 'nao_quero') {
             $query .= " AND e.descricao LIKE ?";
             $params[] = "%" . $tipo_piscina_escolhido . "%";
@@ -178,7 +177,7 @@ mysqli_close($ligaDB);
         <div class="auth-buttons">
             <?php 
             if (isset($_SESSION['usuario']) && isset($_SESSION['usuario']['user_type']) && $_SESSION['usuario']['user_type'] === 'admin') {
-                echo '<button onclick="window.location.href=\'admin_empresas.php\'" class="admin-btn">⚙️ Painel Admin</button>';
+                echo '<button onclick="window.location.href=\'admin_empresas.php\'" class="admin-btn">Painel Admin</button>';
             }
             if (isset($_SESSION['usuario'])) { ?>
                 <span>Olá, <?php echo htmlspecialchars($_SESSION['usuario']['nome']); ?>!</span>
@@ -301,7 +300,7 @@ mysqli_close($ligaDB);
                     </div>
                 <?php endforeach; ?>
             </div>
-        <?php elseif ($_SERVER["REQUEST_METHOD"] == "POST" && empty($erro)): ?>
+        <? elseif ($_SERVER["REQUEST_METHOD"] == "POST" && empty($erro)): ?>
             <div class="results-section">
                 <p>Nenhuma empresa encontrada que corresponda aos serviços e tipo de piscina solicitados.</p>
             </div>

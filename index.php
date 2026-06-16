@@ -336,7 +336,7 @@ session_start();
       ) {
       ?>
           <button onclick="window.location.href='admin_empresas.php'" class="admin-btn">
-              ⚙️ Painel Admin
+              Painel Admin
           </button>
       <?php 
       }

@@ -8,7 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST["email"]); 
     $senha = $_POST["senha"]; 
 
-    // 1. Preparamos a query para buscar os dados do utilizador (incluindo o HASH da senha e o TIPO de utilizador)
+    // 1. Prepara a query para buscar os dados do utilizador (incluindo o HASH da senha e o TIPO de utilizador)
     $sql = "SELECT id_cliente, nome, senha, user_type FROM clientes WHERE email = ? LIMIT 1";
     $stmt = mysqli_prepare($ligaDB, $sql); 
     
@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         mysqli_stmt_execute($stmt); 
         $resultado = mysqli_stmt_get_result($stmt);
 
-        // 2. Verificamos se o e-mail existe
+        // 2. Verifica se o e-mail existe
         if ($user = mysqli_fetch_assoc($resultado)) { 
             
             // 3. O CORAÇÃO DO LOGIN: password_verify compara a senha digitada com o HASH da BD
