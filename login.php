@@ -8,7 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST["email"]); 
     $senha = $_POST["senha"]; 
 
-    // 1. Prepara a query para buscar os dados do utilizador (incluindo o HASH da senha e o TIPO de utilizador)
+    // Prepara a query para buscar os dados do utilizador 
     $sql = "SELECT id_cliente, nome, senha, user_type FROM clientes WHERE email = ? LIMIT 1";
     $stmt = mysqli_prepare($ligaDB, $sql); 
     
@@ -17,18 +17,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         mysqli_stmt_execute($stmt); 
         $resultado = mysqli_stmt_get_result($stmt);
 
-        // 2. Verifica se o e-mail existe
+        // Verifica se o e-mail existe
         if ($user = mysqli_fetch_assoc($resultado)) { 
             
-            // 3. O CORAÇÃO DO LOGIN: password_verify compara a senha digitada com o HASH da BD
+            // password_verify compara a senha digitada com o HASH da BD
             if (password_verify($senha, $user['senha'])) {
                 
-                // 4. Se a senha estiver correta, guardamos os dados na sessão
+                // Se a password estiver correta, guardamos os dados na sessão
                 $_SESSION["usuario"] = [
                     "id_cliente" => $user['id_cliente'], 
                     "nome"       => $user['nome'], 
                     "email"      => $email,
-                    "user_type"  => $user['user_type'] // Importante para as permissões de Admin
+                    "user_type"  => $user['user_type'] 
                 ]; 
                 
                 header("Location: index.php"); 
@@ -59,7 +59,6 @@ if (isset($ligaDB)) {
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
-        /* Estilização global */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
 
         body {
@@ -148,7 +147,6 @@ if (isset($ligaDB)) {
 
             <button type="submit" class="btn">Entrar</button>
 
-            <!-- Link para a página de pedido de recuperação que criaste -->
             <a class="toggle-link" href="recuperar_senha.php">Esqueceu a senha?</a>
 
             <p style="margin-top: 15px; font-size: 14px; color: #666;">

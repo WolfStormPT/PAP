@@ -10,7 +10,6 @@ session_start();
   <title>OceanBlue Pool</title>
 
   <style>
-    /* CSS principal (mantido do original) */
     * {
       margin: 0;
       padding: 0;
@@ -91,9 +90,8 @@ session_start();
       background: #e0e0e0;
     }
     
-    /* Novo estilo para o botão Admin */
     .admin-btn {
-        background: #ffcc00 !important; /* Cor de destaque */
+        background: #ffcc00 !important; 
         color: #005792 !important;
         transition: background 0.3s;
     }
@@ -329,7 +327,7 @@ session_start();
     <div class="auth-buttons">
       
       <?php 
-      // Se estiver logado e for administrador, exibe os botões de controlo do backoffice
+      // Se estiver logado e for admin, exibe os botões de controlo do backoffice
       if (
         isset($_SESSION['usuario']['user_type']) &&
         $_SESSION['usuario']['user_type'] === 'admin'
@@ -377,7 +375,6 @@ session_start();
       <a href="index.php">Início</a>
       <a href="listar_empresas.php">Empresas</a> 
       <a href="sobre.php">Sobre</a>
-      <a href="contato.php">Contato</a>
     </div>
     <div class="copy">
       &copy; <?php echo date("Y"); ?> OceanBlue Pool - Todos os direitos reservados

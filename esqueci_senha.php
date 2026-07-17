@@ -1,23 +1,17 @@
 <?php
-/**
- * OceanBlue Pool - Sistema de Recuperação de Senha
- * Este ficheiro gere o pedido de recuperação, gera o token e simula o envio.
- */
-
 require_once "conexao.php";
 
 $mensagem = "";
-$status = ""; // Usado para definir a classe de estilo da mensagem
+$status = ""; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Sanitização básica do input
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
 
     if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $mensagem = "Por favor, introduza um e-mail válido.";
         $status = "erro";
     } else {
-        // 1. Verificar existência do cliente (usando Prepared Statements por segurança)
+        // Verifica a existência do cliente 
         $sql = "SELECT id_cliente FROM clientes WHERE email = ? LIMIT 1";
         $stmt = mysqli_prepare($ligaDB, $sql);
         mysqli_stmt_bind_param($stmt, "s", $email);
@@ -25,23 +19,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $resultado = mysqli_stmt_get_result($stmt);
 
         if ($user = mysqli_fetch_assoc($resultado)) {
-            // 2. Gerar Token único e Seguro
+            // Gerar um Token único e seguro
             $token = bin2hex(random_bytes(32));
             $expira = date("Y-m-d H:i:s", strtotime("+1 hour"));
 
-            // 3. Atualizar a base de dados com o token e validade
+            // Atualiza a base de dados com o token e validade
             $sql_update = "UPDATE clientes SET reset_token = ?, reset_token_expira = ? WHERE email = ?";
             $stmt_update = mysqli_prepare($ligaDB, $sql_update);
             mysqli_stmt_bind_param($stmt_update, "sss", $token, $expira, $email);
             
             if (mysqli_stmt_execute($stmt_update)) {
-                // 4. Construção do Link Dinâmico
-                // Deteta automaticamente se o projeto está numa subpasta
+                // Construção do Link Dinâmico
+                // Elimina automaticamente se o projeto está numa subpasta
                 $diretorio = dirname($_SERVER['PHP_SELF']);
                 $url_base = "http://" . $_SERVER['HTTP_HOST'] . ($diretorio == DIRECTORY_SEPARATOR ? "" : $diretorio);
                 $link = $url_base . "/nova_senha.php?token=" . $token;
 
-                // Mensagem formatada para o utilizador
                 $mensagem = "Link enviado com sucesso!<br>";
                 $mensagem .= "<a href='$link' class='sim-link'>[Simular clique no E-mail]</a>";
                 $status = "sucesso";
@@ -65,7 +58,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <title>Recuperar Senha - OceanBlue Pool</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <style>
-    /* CSS ORIGINAL MANTIDO */
     body {
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #004d66, #0099cc);

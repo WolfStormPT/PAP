@@ -2,8 +2,6 @@
 session_start();
 require_once "conexao.php"; 
 
-// 1. Obter o ID da empresa do URL
-// Nota: id_cliente é agora id na sessão
 $id_empresa = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $id_cliente = isset($_SESSION['usuario']['id_cliente']) ? $_SESSION['usuario']['id_cliente'] : 0; 
 
@@ -17,9 +15,9 @@ $erro_avaliacao = "";
 $cliente_ja_avaliou = false;
 
 
-// --- FUNÇÃO PARA RECALCULAR A MÉDIA ---
+// --- Função pra recalcular a média ---
 function recalcular_media($ligaDB, $id_empresa) {
-    // 1. Calcular a nova média
+    // Calcular a nova média
     $sql_media = "SELECT AVG(classificacao) AS nova_media FROM avaliacoes WHERE id_empresa = ?";
     $stmt_media = mysqli_prepare($ligaDB, $sql_media);
     mysqli_stmt_bind_param($stmt_media, "i", $id_empresa);
@@ -28,7 +26,7 @@ function recalcular_media($ligaDB, $id_empresa) {
     $media_data = mysqli_fetch_assoc($resultado_media);
     $nova_media = $media_data['nova_media'] ?? 0;
     
-    // 2. Atualizar a tabela empresas
+    // Atualizar a tabela empresas
     $sql_update = "UPDATE empresas SET avaliacao_media = ? WHERE id_empresa = ?";
     $stmt_update = mysqli_prepare($ligaDB, $sql_update);
     mysqli_stmt_bind_param($stmt_update, "di", $nova_media, $id_empresa);
@@ -36,7 +34,7 @@ function recalcular_media($ligaDB, $id_empresa) {
 }
 
 
-// --- 2. PROCESSAR SUBMISSÃO DA AVALIAÇÃO ---
+// --- Processa a submissão da avaliação  ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_avaliacao'])) {
     if ($id_cliente === 0) {
         $erro_avaliacao = "Precisa de estar logado para avaliar!";
@@ -47,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_avaliacao'])) {
         if ($classificacao < 1 || $classificacao > 5) {
             $erro_avaliacao = "A classificação deve ser entre 1 e 5 estrelas.";
         } else {
-            // Tenta inserir/atualizar a avaliação
+            // Tenta inserir ou atualizar a avaliação
             $sql_insert = "
                 INSERT INTO avaliacoes (id_empresa, id_cliente, classificacao, comentario) 
                 VALUES (?, ?, ?, ?)
@@ -70,8 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_avaliacao'])) {
     }
 }
 
-
-// --- 3. OBTER DETALHES DA EMPRESA (COM SERVIÇOS AGRUPADOS) ---
+// --- Obtem os detalhes da empresa ---
 $sql_empresa = "
     SELECT 
         e.*,
@@ -99,7 +96,7 @@ if (!$empresa) {
     exit;
 }
 
-// --- 4. VERIFICAR SE O CLIENTE JÁ AVALIOU ---
+// --- Verifica se o cliente já avaliou ---
 $avaliacao_cliente = null;
 if ($id_cliente > 0) {
     $sql_check = "SELECT classificacao, comentario FROM avaliacoes WHERE id_empresa = ? AND id_cliente = ?";
@@ -114,7 +111,7 @@ if ($id_cliente > 0) {
     }
 }
 
-// --- 5. OBTER TODAS AS AVALIAÇÕES PARA LISTAGEM ---
+// --- Obtem todas as avaliações para a listagem ---
 $sql_avaliacoes = "
     SELECT 
         a.classificacao, 
@@ -147,13 +144,11 @@ mysqli_close($ligaDB);
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        /* CSS Base para corresponder ao teu estilo OceanBlue */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
         :root { --cor-principal: #005792; --cor-secundaria: #ffcc00; --fundo: #f4f4f4; }
         body { background: var(--fundo); color: #333; }
         .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
         
-        /* ESTILOS DO HEADER (COPIADOS DO INDEX.PHP) */
         header { 
             display: flex; 
             justify-content: space-between; 
@@ -173,9 +168,7 @@ mysqli_close($ligaDB);
         .auth-buttons button:hover { background: #e0e0e0; }
         .admin-btn { background: #ffcc00 !important; color: #005792 !important; transition: background 0.3s; }
         .admin-btn:hover { background: #e0b300 !important; }
-        /* FIM ESTILOS DO HEADER */
 
-        /* Cartão de Detalhes da Empresa */
         .empresa-details { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; display: flex; flex-wrap: wrap; gap: 30px; }
         .empresa-logo { max-width: 150px; height: auto; border-radius: 8px; object-fit: cover; }
         .empresa-info-main { flex: 1; min-width: 300px; }
@@ -185,11 +178,9 @@ mysqli_close($ligaDB);
         .contact-info p { margin: 5px 0; font-size: 16px; }
         .tag { display: inline-block; background: #e0f3ff; color: var(--cor-principal); padding: 5px 10px; border-radius: 4px; font-size: 13px; margin-right: 5px; margin-top: 10px; }
         
-        /* Seção de Avaliação */
         .review-section { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 30px; }
         .review-section h2 { color: var(--cor-principal); border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
         
-        /* Formulário de Avaliação */
         .star-rating { direction: rtl; display: inline-block; }
         .star-rating input { display: none; }
         .star-rating label { 
@@ -207,7 +198,6 @@ mysqli_close($ligaDB);
         .review-form button { background: var(--cor-principal); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; transition: background 0.3s; }
         .review-form button:hover { background: #003f6b; }
         
-        /* Lista de Avaliações */
         .review-list { padding-top: 10px; }
         .review-item { border-left: 3px solid var(--cor-principal); padding-left: 15px; margin-bottom: 20px; background: #fafafa; padding: 15px; border-radius: 4px; }
         .review-item .name { font-weight: bold; color: var(--cor-principal); }
@@ -215,11 +205,9 @@ mysqli_close($ligaDB);
         .review-item .stars { color: var(--cor-secundaria); font-size: 16px; margin: 5px 0; }
         .review-item p { margin-top: 5px; font-size: 14px; }
 
-        /* Mensagens de Sucesso/Erro */
         .message-box.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
         .message-box.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
 
-        /* Media Query para responsividade do header */
         @media (max-width: 768px) {
             header { flex-direction: column; gap: 10px; padding: 15px 20px; }
             nav { flex-direction: column; gap: 5px; }
@@ -246,12 +234,10 @@ mysqli_close($ligaDB);
 
         <div class="auth-buttons">
             <?php 
-            // BOTÃO ADMIN: Verificação de segurança
             if (isset($_SESSION['usuario']) && isset($_SESSION['usuario']['user_type']) && $_SESSION['usuario']['user_type'] === 'admin') {
                 echo '<button onclick="window.location.href=\'adicionar_empresa.php\'" class="admin-btn">+ Adicionar Empresa</button>';
             }
             
-            // BOTÕES DE AUTENTICAÇÃO
             if (isset($_SESSION['usuario'])) { ?>
                 <span>Olá, <?php echo htmlspecialchars($_SESSION['usuario']['nome']); ?>!</span>
                 <button onclick="window.location.href='logout.php'">Logout</button>
@@ -292,7 +278,7 @@ mysqli_close($ligaDB);
                 
                 <div>
                     <?php 
-                    // Exibe serviços como tags
+                    // Exibe os serviços como tags
                     $servicos_array = explode(', ', $empresa['servicos_oferecidos']);
                     foreach ($servicos_array as $servico_tag) {
                         echo '<span class="tag">' . htmlspecialchars($servico_tag) . '</span>';
@@ -310,7 +296,7 @@ mysqli_close($ligaDB);
             if (!empty($erro_avaliacao)) echo "<div class='message-box error'>$erro_avaliacao</div>";
             
             if ($id_cliente > 0) {
-                // Se o cliente já avaliou, mostra uma mensagem e carrega a avaliação existente
+                // Se o cliente já avaliou, mostra uma mensagem e carrega a sua avaliação 
                 if ($cliente_ja_avaliou) {
                     echo "<p>Você já avaliou esta empresa. Use o formulário abaixo para **atualizar** a sua nota.</p>";
                     $default_rating = $avaliacao_cliente['classificacao'];

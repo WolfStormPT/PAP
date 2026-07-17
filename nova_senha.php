@@ -4,9 +4,9 @@ require_once "conexao.php";
 $token = $_GET['token'] ?? '';
 $valido = false;
 
-// 1. VERIFICAR SE O TOKEN EXISTE E É VÁLIDO
+// Verifica se o token existe e se é válido 
 if (!empty($token)) {
-    // Procura um cliente que tenha este token e que a expiração seja maior que "agora"
+    // Procura um cliente que tenha este token
     $sql = "SELECT id_cliente FROM clientes WHERE reset_token = ? AND reset_token_expira > NOW()";
     $stmt = mysqli_prepare($ligaDB, $sql);
     mysqli_stmt_bind_param($stmt, "s", $token);
@@ -19,15 +19,14 @@ if (!empty($token)) {
     }
 }
 
-// 2. PROCESSAR A TROCA DE SENHA
+// Processa a troca de password
 if ($_SERVER["REQUEST_METHOD"] == "POST" && $valido) {
     $nova_senha = $_POST['senha']; 
     
-    // --- LÓGICA DE ENCRIPTAÇÃO ---
-    // Geramos o HASH para que a senha não fique em texto limpo na base de dados
+    // É gerado o HASH para que a senha não fique em texto limpo na base de dados
     $senha_hash = password_hash($nova_senha, PASSWORD_DEFAULT);
 
-    // Atualiza para a SENHA ENCRIPTADA e limpa o token
+    // Atualiza para a password encriptada e limpa o token
     $sql_up = "UPDATE clientes SET senha = ?, reset_token = NULL, reset_token_expira = NULL WHERE id_cliente = ?";
     $stmt_up = mysqli_prepare($ligaDB, $sql_up);
     

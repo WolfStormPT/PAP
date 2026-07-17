@@ -13,7 +13,7 @@ if ($id_empresa <= 0) {
 $erro = "";
 $sucesso = "";
 
-// --- 1. PROCESSAMENTO DO FORMULÁRIO (ATUALIZAÇÃO) ---
+// --- Processamento do formulário ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nome = trim($_POST['nome']);
     $descricao = trim($_POST['descricao']);
@@ -28,11 +28,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif (empty($servicos_selecionados)) {
         $erro = "Deve selecionar pelo menos um serviço oferecido pela empresa.";
     } else {
-        // Iniciamos uma transação para garantir consistência entre as tabelas
         mysqli_begin_transaction($ligaDB);
 
         try {
-            // A. Atualizar os dados principais na tabela 'empresas'
             $sql_up = "UPDATE empresas SET nome = ?, descricao = ?, localizacao = ?, telefone = ?, email = ?, site = ? WHERE id_empresa = ?";
             $stmt_up = mysqli_prepare($ligaDB, $sql_up);
             mysqli_stmt_bind_param($stmt_up, "ssssssi", $nome, $descricao, $localizacao, $telefone, $email, $site, $id_empresa);
@@ -41,14 +39,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 throw new Exception("Erro ao atualizar os dados da empresa.");
             }
 
-            // B. Atualizar as ligações N:N (Serviços)
-            // Primeiro, removemos todas as ligações antigas desta empresa
             $sql_del_servicos = "DELETE FROM empresa_servicos WHERE id_empresa = ?";
             $stmt_del = mysqli_prepare($ligaDB, $sql_del_servicos);
             mysqli_stmt_bind_param($stmt_del, "i", $id_empresa);
             mysqli_stmt_execute($stmt_del);
 
-            // Agora, inserimos as novas ligações selecionadas
             $sql_ins_servico = "INSERT INTO empresa_servicos (id_empresa, id_servico) VALUES (?, ?)";
             $stmt_ins = mysqli_prepare($ligaDB, $sql_ins_servico);
 
@@ -59,7 +54,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
 
-            // Se tudo correu bem, salvamos na base de dados
             mysqli_commit($ligaDB);
             $sucesso = "Empresa atualizada com sucesso!";
             
@@ -70,7 +64,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// --- 2. OBTER DADOS ATUAIS DA EMPRESA (PARA PREENCHER O FORMULÁRIO) ---
 $sql_empresa = "SELECT * FROM empresas WHERE id_empresa = ? LIMIT 1";
 $stmt_empresa = mysqli_prepare($ligaDB, $sql_empresa);
 mysqli_stmt_bind_param($stmt_empresa, "i", $id_empresa);
@@ -83,12 +76,11 @@ if (!$empresa) {
     exit();
 }
 
-// --- 3. OBTER TODOS OS SERVIÇOS DO SISTEMA ---
+// --- Obtem todos os serviços do sistema ---
 $sql_todos_servicos = "SELECT id_servico, nome_servico FROM serviços ORDER BY nome_servico";
 $res_todos_servicos = mysqli_query($ligaDB, $sql_todos_servicos);
 $servicos_disponiveis = mysqli_fetch_all($res_todos_servicos, MYSQLI_ASSOC);
 
-// --- 4. OBTER OS SERVIÇOS QUE ESTA EMPRESA JÁ POSSUI ATUALMENTE ---
 $sql_servicos_atuais = "SELECT id_servico FROM empresa_servicos WHERE id_empresa = ?";
 $stmt_atuais = mysqli_prepare($ligaDB, $sql_servicos_atuais);
 mysqli_stmt_bind_param($stmt_atuais, "i", $id_empresa);

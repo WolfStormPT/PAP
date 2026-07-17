@@ -1,23 +1,18 @@
 <?php
-/**
- * OceanBlue Pool - Sistema de Recuperação de Senha
- * Este ficheiro gere o pedido de recuperação, gera o token e simula o envio.
- */
-
 require_once "conexao.php";
 
 $mensagem = "";
-$status = ""; // Usado para definir a classe de estilo da mensagem
+$status = ""; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // 1. Sanitização e Validação do input
+    // Validação do input
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
 
     if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $mensagem = "Por favor, introduza um e-mail válido.";
         $status = "erro";
     } else {
-        // 2. Verificar existência do cliente (usando Prepared Statements por segurança)
+        // Verifica a existência do cliente 
         $sql = "SELECT id_cliente FROM clientes WHERE email = ? LIMIT 1";
         $stmt = mysqli_prepare($ligaDB, $sql);
         mysqli_stmt_bind_param($stmt, "s", $email);
@@ -25,17 +20,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $resultado = mysqli_stmt_get_result($stmt);
 
         if ($user = mysqli_fetch_assoc($resultado)) {
-            // 3. Gerar Token único e Seguro
+            // Gera o token único 
             $token = bin2hex(random_bytes(32));
             $expira = date("Y-m-d H:i:s", strtotime("+1 hour"));
 
-            // 4. Atualizar a base de dados com o token e validade
+            // Atualiza a base de dados com o token e validade
             $sql_update = "UPDATE clientes SET reset_token = ?, reset_token_expira = ? WHERE email = ?";
             $stmt_update = mysqli_prepare($ligaDB, $sql_update);
             mysqli_stmt_bind_param($stmt_update, "sss", $token, $expira, $email);
             
             if (mysqli_stmt_execute($stmt_update)) {
-                // 5. Construção do Link Dinâmico (Deteta automaticamente a pasta do projeto)
                 $diretorio = dirname($_SERVER['PHP_SELF']);
                 $url_base = "http://" . $_SERVER['HTTP_HOST'] . ($diretorio == DIRECTORY_SEPARATOR ? "" : $diretorio);
                 $link = $url_base . "/nova_senha.php?token=" . $token;
@@ -123,7 +117,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       background: #003f6b;
     }
 
-    /* Caixa de mensagem com cores dinâmicas */
     .message {
       margin-top: 15px;
       padding: 12px;

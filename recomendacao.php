@@ -9,26 +9,21 @@ $foco_escolhido = "";
 $servico_id_escolhido = 0;
 $tipo_piscina_escolhido = "";
 
-// Variáveis para guardar a localização do utilizador enviada pelo JS
 $user_lat = isset($_POST['user_lat']) ? floatval($_POST['user_lat']) : 0;
 $user_lng = isset($_POST['user_lng']) ? floatval($_POST['user_lng']) : 0;
 
-// =========================================================================
-// CORREÇÃO: MECANISMO DE FALLBACK PARA COMPUTAÇÃO COM BLOQUEIO DE PRIVACIDADE
-// Se o sistema operativo bloquear as coordenadas (virem a 0), injetamos Lisboa.
-// =========================================================================
 if ($user_lat === 0.0 && $user_lng === 0.0) {
     $user_lat = 38.7223; // Centro Geográfico de Lisboa
     $user_lng = -9.1393;
 }
 
-// --- 1. OBTER SERVIÇOS DISPONÍVEIS ---
+// ---Obtem os serviços disponiveis ---
 $sql_servicos = "SELECT id_servico, nome_servico FROM serviços ORDER BY nome_servico";
 $resultado_servicos = mysqli_query($ligaDB, $sql_servicos);
 $servicos_disponiveis = mysqli_fetch_all($resultado_servicos, MYSQLI_ASSOC);
 
 
-// --- 2. PROCESSAR O FORMULÁRIO ---
+// --- Processa o fomulário ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])) {
     
     $servico_id_escolhido = isset($_POST['servico_id']) ? intval($_POST['servico_id']) : 0;
@@ -39,7 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
         $erro = "Por favor, selecione o tipo de serviço que precisa.";
     } else {
         
-        // --- 3. CONSTRUIR A CONSULTA COM A FÓRMULA DE HAVERSINE ---
+        // --- Constroi a consulta de acordo com o formulário ---
         $query = "
             SELECT 
                 e.id_empresa, 
@@ -72,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
         
         $query .= " GROUP BY e.id_empresa";
         
-        // ORDENAÇÃO INTELIGENTE
+        // Ordenagem inteligente
         if ($foco_escolhido === 'avaliacao') {
             $query .= " ORDER BY e.avaliacao_media DESC, e.nome ASC";
         } elseif ($foco_escolhido === 'localizacao') {
@@ -81,7 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_recomendacao'])
         
         $query .= " LIMIT 3";
 
-        // --- 4. EXECUTAR A CONSULTA ---
+        // ---Executa a consulta ---
         $stmt = mysqli_prepare($ligaDB, $query);
         
         if (!empty($types)) {
@@ -195,7 +190,6 @@ mysqli_close($ligaDB);
             <?php if (!empty($erro)) { echo "<p class='message-erro'>$erro</p>"; } ?>
             
             <form action="recomendacao.php" method="POST" id="formRecomendacao">
-                <!-- CAMPOS OCULTOS PARA GUARDAR A GEOLOCALIZAÇÃO -->
                 <input type="hidden" name="user_lat" id="user_lat" value="0">
                 <input type="hidden" name="user_lng" id="user_lng" value="0">
 
@@ -312,7 +306,6 @@ mysqli_close($ligaDB);
             <a href="index.php">Início</a>
             <a href="listar_empresas.php">Empresas</a>
             <a href="sobre.php">Sobre</a>
-            <a href="contato.php">Contato</a>
         </div>
         <div class="copy">&copy; <?php echo date("Y"); ?> OceanBlue Pool - Todos os direitos reservados</div>
     </footer>

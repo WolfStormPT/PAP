@@ -13,15 +13,14 @@ if (!isset($_SESSION['usuario']) || $_SESSION['usuario']['user_type'] !== 'admin
 $erro = "";
 $sucesso = "";
 
-// --- 2. OBTER SERVIÇOS DISPONÍVEIS ---
+// --- 2. Obtem serviços desponiveis ---
 $sql_servicos = "SELECT id_servico, nome_servico FROM serviços ORDER BY nome_servico";
 $resultado_servicos = mysqli_query($ligaDB, $sql_servicos);
 $servicos_disponiveis = mysqli_fetch_all($resultado_servicos, MYSQLI_ASSOC);
 
 
-// --- 3. PROCESSAMENTO DO FORMULÁRIO ---
+// --- 3. Processamento do formulário ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Limpeza e coleta dos dados
     $nome = trim($_POST['nome']);
     $descricao = trim($_POST['descricao']);
     $localizacao = trim($_POST['localizacao']);
@@ -30,8 +29,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $site = trim($_POST['site']);
     $servicos_selecionados = $_POST['servicos'] ?? [];
     $imagem = $_POST['imagem'] ?? 'assets/default_empresa.png';
-    
-    // NOVOS CAMPOS: Coleta as coordenadas vindas do JavaScript
     $latitude = isset($_POST['latitude']) && $_POST['latitude'] !== "" ? floatval($_POST['latitude']) : null;
     $longitude = isset($_POST['longitude']) && $_POST['longitude'] !== "" ? floatval($_POST['longitude']) : null;
 
@@ -43,11 +40,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         mysqli_begin_transaction($ligaDB);
 
         try {
-            // A. INSERIR NA TABELA EMPRESAS (Query atualizada com latitude e longitude)
             $sql_empresa = "INSERT INTO empresas (nome, descricao, localizacao, telefone, email, site, imagem, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt_empresa = mysqli_prepare($ligaDB, $sql_empresa);
             
-            // "ssssssisd" -> adicionamos 'd' (double) para latitude e longitude
+            // "sssssssdd" -> adicionamos 'd' (double) para latitude e longitude
             mysqli_stmt_bind_param($stmt_empresa, "sssssssdd", $nome, $descricao, $localizacao, $telefone, $email, $site, $imagem, $latitude, $longitude);
             
             if (!mysqli_stmt_execute($stmt_empresa)) {
@@ -55,7 +51,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             $id_empresa = mysqli_insert_id($ligaDB);
 
-            // B. INSERIR NA TABELA EMPRESA_SERVICOS (ligação N:N)
             $sql_servico = "INSERT INTO empresa_servicos (id_empresa, id_servico) VALUES (?, ?)";
             $stmt_servico = mysqli_prepare($ligaDB, $sql_servico);
 

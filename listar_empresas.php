@@ -1,17 +1,16 @@
 <?php
 session_start();
-require_once "conexao.php"; // Tua conexão mysqli procedural
+require_once "conexao.php";
 
-// Variáveis para filtros
 $filtro_servico_id = isset($_GET['servico_id']) ? intval($_GET['servico_id']) : 0;
 
-// --- A. OBTER TODOS OS SERVIÇOS (PARA O FILTRO) ---
+// Obtem todos os serviços
 $sql_servicos = "SELECT id_servico, nome_servico FROM serviços ORDER BY nome_servico";
 $resultado_servicos = mysqli_query($ligaDB, $sql_servicos);
 $servicos_disponiveis = mysqli_fetch_all($resultado_servicos, MYSQLI_ASSOC);
 
 
-// --- B. CONSTRUIR A QUERY PRINCIPAL PARA LISTAR EMPRESAS ---
+// Constrói a query principal para a listagem das empresas
 $query = "
     SELECT 
         e.id_empresa, 
@@ -29,18 +28,17 @@ $query = "
         serviços s ON es.id_servico = s.id_servico
 ";
 
-// Adicionar a lógica de filtro
+// Adiciona a lógica do filtro
 if ($filtro_servico_id > 0) {
     $query .= " WHERE e.id_empresa IN (
         SELECT id_empresa FROM empresa_servicos WHERE id_servico = ?
     )";
 }
 
-// Agrupar e Ordenar
 $query .= " GROUP BY e.id_empresa 
              ORDER BY e.avaliacao_media DESC, e.nome ASC";
 
-// --- C. EXECUTAR A QUERY ---
+// --- Executa a query ---
 if ($filtro_servico_id > 0) {
     $stmt = mysqli_prepare($ligaDB, $query);
     mysqli_stmt_bind_param($stmt, "i", $filtro_servico_id);
@@ -66,8 +64,6 @@ mysqli_close($ligaDB);
         :root { --fundo: #73b6fa; --cor-primaria: #005792; }
         
         body { background: #f4f4f4; color: #333; }
-        
-        /* HEADER */
         header { 
             display: flex; 
             justify-content: space-between; 
@@ -89,11 +85,9 @@ mysqli_close($ligaDB);
         .admin-btn { background: #ffcc00 !important; color: #005792 !important; transition: background 0.3s; }
         .admin-btn:hover { background: #e0b300 !important; }
 
-        /* TITULO E CONTAINER */
         .page-title { text-align: center; color: var(--cor-primaria); padding: 30px 20px 0; font-size: 28px; }
         .container-main { max-width: 1200px; margin: 20px auto 40px; padding: 0 20px; display: flex; gap: 30px; }
         
-        /* SIDEBAR */
         .sidebar { flex: 0 0 250px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); height: fit-content; }
         .sidebar h3 { color: #005792; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .filter-item { margin-bottom: 5px; }
@@ -101,7 +95,6 @@ mysqli_close($ligaDB);
         .filter-item a:hover { background: #e0f3ff; color: #005792; }
         .filter-item a.active { background: #005792; color: white; font-weight: bold; }
 
-        /* LISTAGEM DE CARDS */
         .listing-area { flex-grow: 1; }
         
         .empresa-card { 
@@ -124,14 +117,13 @@ mysqli_close($ligaDB);
             background-color: #fcfcfc;
         }
 
-        /* --- ALTERAÇÃO AQUI: O link agora cobre TUDO --- */
         .card-link {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 10; /* Garante que fica por cima de todo o conteúdo do card */
+            z-index: 10;
         }
 
         .empresa-image { width: 100px; height: 100px; border-radius: 8px; object-fit: cover; border: 1px solid #ccc; position: relative; z-index: 2; }
@@ -152,7 +144,7 @@ mysqli_close($ligaDB);
             margin-right: 5px; 
             margin-top: 5px; 
             position: relative; 
-            z-index: 11; /* Mantido um pouco acima do link para não perder o destaque visual */
+            z-index: 11; 
         }
         
         @media (max-width: 800px) {

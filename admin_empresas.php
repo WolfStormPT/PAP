@@ -360,7 +360,6 @@ $empresas = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
       <a href="index.php">Início</a>
       <a href="listar_empresas.php">Empresas</a> 
       <a href="sobre.php">Sobre</a>
-      <a href="contato.php">Contato</a>
     </div>
     <div class="copy">
       &copy; <?php echo date("Y"); ?> OceanBlue Pool - Área Administrativa

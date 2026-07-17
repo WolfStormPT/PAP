@@ -1,8 +1,8 @@
 <?php
-session_start(); // Inicia a sessão
-require_once "conexao.php"; // Conexão com o banco de dados
+session_start(); 
+require_once "conexao.php";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") { // Verifica se o formulário foi enviado
+if ($_SERVER["REQUEST_METHOD"] == "POST") { 
     $nome = trim($_POST["nome"]);
     $email = trim($_POST["email"]);
     $senha = trim($_POST["senha"]);
@@ -48,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") { // Verifica se o formulário foi env
     }
 }
 
-mysqli_close($ligaDB); // Fecha a conexão com o banco
+mysqli_close($ligaDB);
 ?>
 
 <!DOCTYPE html>
